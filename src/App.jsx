@@ -14,6 +14,7 @@ import { Testimonials } from './components/sections/Testimonials';
 import { Marquee } from './components/sections/Marquee';
 import { CTA } from './components/sections/CTA';
 import { Syllabus } from './pages/Syllabus';
+import { Resources } from './pages/Resources';
 
 // Scroll to top on route change
 function ScrollToTop() {
@@ -65,6 +66,7 @@ function App() {
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/syllabus" element={<Syllabus />} />
+              <Route path="/resources" element={<Resources />} />
             </Routes>
           </main>
 

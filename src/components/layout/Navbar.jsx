@@ -20,7 +20,7 @@ export function Navbar() {
         <div className="hidden md:flex items-center gap-6">
           <Link to="/syllabus" className="text-sm font-medium text-zinc-600 hover:text-emerald-600 transition-colors">Curriculum</Link>
           <a href="/#projects" className="text-sm font-medium text-zinc-600 hover:text-emerald-600 transition-colors">Projects</a>
-          <a href="/#features" className="text-sm font-medium text-zinc-600 hover:text-emerald-600 transition-colors">Features</a>
+          <Link to="/resources" className="text-sm font-medium text-zinc-600 hover:text-emerald-600 transition-colors">Resources</Link>
           <a href="/#pricing" className="text-sm font-medium text-zinc-600 hover:text-emerald-600 transition-colors">Pricing</a>
         </div>
 
