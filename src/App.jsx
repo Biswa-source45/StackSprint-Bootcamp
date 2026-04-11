@@ -15,6 +15,7 @@ import { Marquee } from './components/sections/Marquee';
 import { CTA } from './components/sections/CTA';
 import { Syllabus } from './pages/Syllabus';
 import { Resources } from './pages/Resources';
+import { About } from './pages/About';
 
 // Scroll to top on route change
 function ScrollToTop() {
@@ -67,6 +68,7 @@ function App() {
               <Route path="/" element={<Home />} />
               <Route path="/syllabus" element={<Syllabus />} />
               <Route path="/resources" element={<Resources />} />
+              <Route path="/about" element={<About />} />
             </Routes>
           </main>
 

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Calendar, Code2, Bot, Briefcase, ArrowRight, PlayCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Link } from 'react-router-dom';
 
 export function Hero() {
   const words = ["Full-Stack", "Backend.", "Gen-AI"];
@@ -139,6 +140,12 @@ export function Hero() {
             Start Your Sprint
             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </a>
+          <Link 
+            to="/syllabus"
+            className="w-full sm:w-auto px-8 py-4 rounded-full bg-white text-zinc-900 border border-zinc-200 text-base font-semibold hover:bg-zinc-50 hover:border-zinc-300 transition-all active:scale-95 flex items-center justify-center gap-2"
+          >
+            View Certificate
+          </Link>
         </motion.div>
       </div>
     </section>
