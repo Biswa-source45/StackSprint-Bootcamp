@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { ChevronRight, Home, ShieldAlert, Award, FileBadge2 } from 'lucide-react';
 import certificateImg from '@/assets/Cirtificate.png';
 
-export function Syllabus() {
+export function Certificate() {
   return (
     <div className="min-h-screen bg-white text-zinc-900 selection:bg-emerald-200 selection:text-emerald-900 overflow-x-hidden w-full relative pt-20">
       {/* Background Decor Layer - Matching Home Page UI */}

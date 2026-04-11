@@ -144,7 +144,7 @@ export function Hero() {
             to="/syllabus"
             className="w-full sm:w-auto px-8 py-4 rounded-full bg-white text-zinc-900 border border-zinc-200 text-base font-semibold hover:bg-zinc-50 hover:border-zinc-300 transition-all active:scale-95 flex items-center justify-center gap-2"
           >
-            View Certificate
+            View Curriculum
           </Link>
         </motion.div>
       </div>

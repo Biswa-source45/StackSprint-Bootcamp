@@ -13,7 +13,7 @@ import { Pricing } from './components/sections/Pricing';
 import { Testimonials } from './components/sections/Testimonials';
 import { Marquee } from './components/sections/Marquee';
 import { CTA } from './components/sections/CTA';
-import { Syllabus } from './pages/Syllabus';
+import { Certificate } from './pages/Syllabus';
 import { Resources } from './pages/Resources';
 import { About } from './pages/About';
 
@@ -66,7 +66,7 @@ function App() {
           <main className="w-full">
             <Routes>
               <Route path="/" element={<Home />} />
-              <Route path="/syllabus" element={<Syllabus />} />
+              <Route path="/syllabus" element={<Certificate />} />
               <Route path="/resources" element={<Resources />} />
               <Route path="/about" element={<About />} />
             </Routes>
