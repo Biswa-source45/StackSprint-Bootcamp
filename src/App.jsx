@@ -106,7 +106,7 @@ function App() {
                     </ProtectedRoute>
                   }
                 />
-                <Route path="/register-admin" element={<RegisterAdmin />} />
+                <Route path="/register-admin" element={<NotFound />} />
 
                 {/* Dashboard router */}
                 <Route
