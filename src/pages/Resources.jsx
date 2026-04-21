@@ -1,85 +1,280 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-import { Hammer, Clock } from 'lucide-react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import {
+  ChevronDown,
+  ChevronUp,
+  GitBranch,
+  BookOpen,
+  FileText,
+  MonitorPlay,
+  Home,
+  Loader2,
+  CheckCircle2
+} from 'lucide-react';
 
-export function Resources() {
+
+// ─── Video Data ────────────────────────────────────────────────────────────────
+const CURRICULUM = [
+  {
+    id: 'github',
+    topic: 'GitHub',
+    icon: GitBranch,
+    color: 'from-violet-600 to-indigo-600',
+    bgLight: 'bg-violet-50',
+    textColor: 'text-violet-700',
+    borderColor: 'border-violet-200',
+    lectures: [
+      {
+        id: 'gh-lec-1',
+        title: 'GitHub — Lecture 1',
+        description: 'Introduction to Git & GitHub: repositories, commits, branching basics.',
+        duration: 'Session Recording',
+        embedUrl: 'https://drive.google.com/file/d/1FaK1SrvwJ63KRBJP8-SlthcZk2pPRcFS/preview'
+      },
+      {
+        id: 'gh-lec-2',
+        title: 'GitHub — Lecture 2',
+        description: 'Advanced GitHub: pull requests, merge conflicts, collaboration workflows.',
+        duration: 'Session Recording',
+        embedUrl: 'https://drive.google.com/file/d/1POPfBVwsb82jStx3y439nKv0DLe6SiwS/preview'
+      }
+    ]
+  }
+];
+
+// ─── Video Player ──────────────────────────────────────────────────────────────
+// Pure Google Drive embed — no custom controls or overlays on top of the player.
+// Only additions: loading spinner while iframe initialises, and a centred Play
+// button that disappears the moment the user clicks it (revealing the full
+// native GDrive chrome with seek, volume, CC, HD, fullscreen, etc.)
+function VideoPlayer({ embedUrl, title }) {
+  const [iframeLoaded, setIframeLoaded] = useState(false);
+  const [hasStarted, setHasStarted] = useState(false);
+
   return (
-    <div className="min-h-screen bg-white text-zinc-900 selection:bg-emerald-200 selection:text-emerald-900 overflow-x-hidden w-full relative flex flex-col items-center justify-center pt-20">
-      {/* Background Decor Layer - Matching Home Page UI */}
-      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-        {/* Dashed Grid */}
-        <div className="absolute inset-0 bg-grid-dashed mask-radial-fade opacity-[0.5]"></div>
-        
-        {/* Left Green Ambience */}
-        <div className="absolute top-[-10%] left-[-15%] w-[70vw] h-[70vw] rounded-full bg-emerald-400/15 blur-[120px]"></div>
-        
-        {/* Right Golden Ambience */}
-        <div className="absolute top-[-10%] right-[-15%] w-[70vw] h-[70vw] rounded-full bg-orange-400/15 blur-[130px]"></div>
+    <div
+      className="relative w-full bg-zinc-950 rounded-xl overflow-hidden shadow-2xl shadow-zinc-900/30"
+      style={{ aspectRatio: '16/9' }}
+    >
+      {/* Loading spinner – shown until iframe fires onLoad */}
+      {!iframeLoaded && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 z-30 bg-zinc-950">
+          <Loader2 className="w-8 h-8 text-emerald-500 animate-spin" />
+          <p className="text-zinc-400 text-xs font-medium tracking-widest uppercase animate-pulse">
+            Loading Video…
+          </p>
+        </div>
+      )}
+
+      {/* Centred Play button – visible after load, gone after first click */}
+      {iframeLoaded && !hasStarted && (
+        <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/25 backdrop-blur-[1.5px]">
+          <button
+            onClick={() => setHasStarted(true)}
+            className="group flex items-center justify-center w-20 h-20 rounded-full bg-white/95 shadow-2xl shadow-black/50 hover:scale-110 active:scale-95 transition-all duration-200 focus:outline-none focus-visible:ring-4 focus-visible:ring-white/50"
+            aria-label={`Play ${title}`}
+          >
+            {/* CSS triangle – cleaner than an SVG for this size */}
+            <div className="w-0 h-0 ml-2 border-t-[13px] border-t-transparent border-l-[22px] border-l-zinc-900 border-b-[13px] border-b-transparent group-hover:border-l-emerald-600 transition-colors duration-200" />
+          </button>
+        </div>
+      )}
+
+      {/* Google Drive iframe – the native player does everything else */}
+      <iframe
+        src={embedUrl}
+        title={title}
+        allow="autoplay; fullscreen"
+        allowFullScreen
+        onLoad={() => setIframeLoaded(true)}
+        className="absolute inset-0 w-full h-full border-0"
+        style={{ opacity: iframeLoaded ? 1 : 0, transition: 'opacity 0.4s ease' }}
+      />
+    </div>
+  );
+}
+
+// ─── Lecture Card ──────────────────────────────────────────────────────────────
+function LectureCard({ lecture, index, topicColor }) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div
+      className={`border border-zinc-200/80 rounded-xl overflow-hidden bg-white shadow-sm transition-shadow ${
+        open ? 'shadow-md' : 'hover:shadow-md'
+      }`}
+    >
+      {/* Header */}
+      <button
+        onClick={() => setOpen((p) => !p)}
+        className="w-full flex items-center gap-4 px-5 py-4 text-left group"
+      >
+        {/* Index badge */}
+        <div
+          className={`flex-shrink-0 w-8 h-8 rounded-lg bg-gradient-to-br ${topicColor} flex items-center justify-center text-white text-xs font-bold shadow-sm`}
+        >
+          {String(index + 1).padStart(2, '0')}
+        </div>
+
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <h3 className="text-sm font-bold text-zinc-900 group-hover:text-emerald-600 transition-colors truncate">
+              {lecture.title}
+            </h3>
+            <span className="flex-shrink-0 flex items-center gap-1 text-[10px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
+              <MonitorPlay className="w-3 h-3" />
+              {lecture.duration}
+            </span>
+          </div>
+          <p className="text-xs text-zinc-400 mt-0.5 truncate">{lecture.description}</p>
+        </div>
+
+        <div className="flex-shrink-0 text-zinc-400 group-hover:text-zinc-600 transition-colors">
+          {open ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+        </div>
+      </button>
+
+      {/* Expandable player */}
+      {open && (
+        <div className="border-t border-zinc-100 bg-zinc-950/5 px-4 pb-4 pt-3 space-y-3">
+          {/* Description */}
+          <p className="text-xs text-zinc-500 leading-relaxed px-1">{lecture.description}</p>
+
+          {/* Player */}
+          <VideoPlayer embedUrl={lecture.embedUrl} title={lecture.title} />
+
+          {/* Player tip */}
+          <div className="flex items-center gap-1.5 pt-1 px-1">
+            <CheckCircle2 className="w-3 h-3 text-emerald-500 flex-shrink-0" />
+            <span className="text-[10px] text-zinc-400">
+              Use the native player controls for seeks, volume, CC, quality &amp; fullscreen.
+            </span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Topic Section ────────────────────────────────────────────────────────────
+function TopicSection({ topic }) {
+  const Icon = topic.icon;
+  return (
+    <div className="space-y-3">
+      {/* Topic header */}
+      <div className={`flex items-center gap-3 px-4 py-3 ${topic.bgLight} ${topic.borderColor} border rounded-xl`}>
+        <div className={`p-2 bg-gradient-to-br ${topic.color} rounded-lg shadow-sm`}>
+          <Icon className="w-4 h-4 text-white" />
+        </div>
+        <div>
+          <h2 className={`text-sm font-bold ${topic.textColor}`}>{topic.topic}</h2>
+          <p className="text-[10px] text-zinc-400">{topic.lectures.length} lecture{topic.lectures.length !== 1 ? 's' : ''} available</p>
+        </div>
+        <div className="ml-auto">
+          <span className={`text-[10px] font-bold ${topic.textColor} ${topic.bgLight} border ${topic.borderColor} px-2.5 py-1 rounded-full`}>
+            {topic.lectures.length} Videos
+          </span>
+        </div>
       </div>
 
-      <div className="relative z-10 max-w-4xl mx-auto px-6 text-center w-full">
-        {/* Speeder Loader from Uiverse.io */}
-        <div className="loader-container mb-10">
-            <div className="loader">
-                <span>
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </span>
-                <div className="base">
-                    <span></span>
-                    <div className="face"></div>
-                </div>
-            </div>
-            <div className="longfazers">
-                <span></span>
-                <span></span>
-                <span></span>
-                <span></span>
-            </div>
-        </div>
+      {/* Lecture cards */}
+      <div className="space-y-2.5 pl-1">
+        {topic.lectures.map((lec, i) => (
+          <LectureCard key={lec.id} lecture={lec} index={i} topicColor={topic.color} />
+        ))}
+      </div>
+    </div>
+  );
+}
 
-        <motion.h1 
-          className="text-4xl md:text-5xl font-bold tracking-tight text-zinc-900 mb-6"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          Compiling Resources
-        </motion.h1>
-        
-        <motion.p 
-          className="text-lg text-zinc-600 mb-10 max-w-xl mx-auto leading-relaxed"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-        >
-          We're moving fast! Exclusive course materials, project templates, and advanced deep-dives will be added here once the cohort kicks off on <span className="text-emerald-600 font-bold">April 13</span>.
-        </motion.p>
+// ─── Notes Tab (placeholder) ──────────────────────────────────────────────────
+function NotesTab() {
+  return (
+    <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
+      <div className="w-14 h-14 bg-zinc-100 rounded-2xl flex items-center justify-center">
+        <FileText className="w-6 h-6 text-zinc-400" />
+      </div>
+      <h3 className="text-sm font-bold text-zinc-700">Notes Coming Soon</h3>
+      <p className="text-xs text-zinc-400 max-w-xs leading-relaxed">
+        Lecture notes, cheat sheets, and reference materials will be uploaded here after each session.
+      </p>
+      <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-full">
+        Check back after each class
+      </span>
+    </div>
+  );
+}
 
-        <motion.div 
-          className="flex flex-col sm:flex-row items-center gap-4 justify-center"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-        >
-          <div className="flex items-center gap-2 px-4 py-2 bg-zinc-50 border border-zinc-200 rounded-full text-zinc-600 text-sm font-medium">
-            <Hammer className="w-4 h-4" />
-            Under Construction
-          </div>
-          <div className="flex items-center gap-2 px-4 py-2 bg-zinc-50 border border-zinc-200 rounded-full text-zinc-600 text-sm font-medium">
-            <Clock className="w-4 h-4" />
-            ETA: April 13, 2026
-          </div>
-        </motion.div>
+// ─── Main Component ───────────────────────────────────────────────────────────
+export function Resources() {
+  const [activeTab, setActiveTab] = useState('videos');
 
-        <div className="mt-16">
-          <Link to="/" className="text-emerald-600 font-semibold hover:underline flex items-center justify-center gap-2 group transition-all">
-            <span className="group-hover:-translate-x-1 transition-transform">←</span> Return to Dashboard
+  return (
+    <div className="min-h-screen bg-zinc-50/50 pt-20 pb-16">
+      {/* Page header */}
+      <div className="max-w-4xl mx-auto px-4 md:px-6">
+        {/* Breadcrumb */}
+        <div className="flex items-center gap-2 mb-6 text-xs text-zinc-400">
+          <Link to="/" className="hover:text-emerald-600 transition-colors flex items-center gap-1 font-medium">
+            <Home className="w-3.5 h-3.5" />
+            Home
           </Link>
+          <span>/</span>
+          <span className="text-zinc-700 font-semibold">Resources</span>
         </div>
+
+        {/* Title area */}
+        <div className="mb-8">
+          <h1 className="text-2xl font-extrabold text-zinc-900 tracking-tight flex items-center gap-2.5">
+            <div className="p-2 bg-emerald-600 rounded-xl shadow-md shadow-emerald-600/30">
+              <BookOpen className="w-5 h-5 text-white" />
+            </div>
+            Learning Resources
+          </h1>
+          <p className="text-zinc-500 text-sm mt-2 max-w-xl">
+            Access all class recordings and study materials. Videos are organized by topic and session.
+          </p>
+        </div>
+
+        {/* Tab switcher */}
+        <div className="flex bg-white border border-zinc-200 rounded-xl p-1 shadow-sm mb-6 w-fit">
+          {[
+            { key: 'videos', label: 'Video Lectures', Icon: MonitorPlay },
+            { key: 'notes', label: 'Notes & Docs', Icon: FileText }
+          ].map(({ key, label, Icon }) => (
+            <button
+              key={key}
+              onClick={() => setActiveTab(key)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all ${
+                activeTab === key
+                  ? 'bg-emerald-600 text-white shadow-sm'
+                  : 'text-zinc-500 hover:text-zinc-700 hover:bg-zinc-50'
+              }`}
+            >
+              <Icon className="w-3.5 h-3.5" />
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {/* Tab content */}
+        {activeTab === 'videos' && (
+          <div className="space-y-6">
+            {CURRICULUM.map((topic) => (
+              <TopicSection key={topic.id} topic={topic} />
+            ))}
+
+            {/* Coming soon note */}
+            <div className="mt-4 flex items-center gap-2 px-4 py-3 bg-amber-50 border border-amber-100 rounded-xl">
+              <span className="text-[10px] font-bold text-amber-600 uppercase tracking-widest">More topics</span>
+              <p className="text-xs text-amber-700">
+                More module recordings (HTML, CSS, JS, React, Node.js…) will appear here as classes are completed.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'notes' && <NotesTab />}
       </div>
     </div>
   );
