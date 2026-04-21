@@ -25,6 +25,7 @@ import Login from './pages/Login';
 import AdminDashboard from './pages/AdminDashboard';
 import StudentDashboard from './pages/StudentDashboard';
 import RegisterAdmin from './pages/RegisterAdmin';
+import NotFound from './pages/NotFound';
 
 // Scroll to top on route change
 function ScrollToTop() {
@@ -134,6 +135,9 @@ function App() {
                     </ProtectedRoute>
                   }
                 />
+
+                {/* 404 — catch all unregistered URLs */}
+                <Route path="*" element={<NotFound />} />
               </Routes>
             </main>
 
