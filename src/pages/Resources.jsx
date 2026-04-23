@@ -9,7 +9,8 @@ import {
   MonitorPlay,
   Home,
   Loader2,
-  CheckCircle2
+  CheckCircle2,
+  Palette
 } from 'lucide-react';
 
 
@@ -34,9 +35,27 @@ const CURRICULUM = [
       {
         id: 'gh-lec-2',
         title: 'GitHub — Lecture 2',
-        description: 'Advanced GitHub: pull requests, merge conflicts, collaboration workflows.',
+        description: 'GitHub: collaboration workflows.',
         duration: 'Session Recording',
         embedUrl: 'https://drive.google.com/file/d/1POPfBVwsb82jStx3y439nKv0DLe6SiwS/preview'
+      }
+    ]
+  },
+  {
+    id: 'css',
+    topic: 'CSS',
+    icon: Palette,
+    color: 'from-blue-600 to-cyan-600',
+    bgLight: 'bg-blue-50',
+    textColor: 'text-blue-700',
+    borderColor: 'border-blue-200',
+    lectures: [
+      {
+        id: 'css-lec-1',
+        title: 'CSS — Lecture 1',
+        description: 'Introduction to CSS: syntax, selectors, colors, fonts',
+        duration: 'Session Recording',
+        embedUrl: 'https://drive.google.com/file/d/1GsimyMwTfRO2-y7WTGmJngt5RepkHIe9/preview'
       }
     ]
   }
