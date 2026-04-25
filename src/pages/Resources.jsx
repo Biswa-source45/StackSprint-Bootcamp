@@ -56,6 +56,13 @@ const CURRICULUM = [
         description: 'Introduction to CSS: syntax, selectors, colors, fonts',
         duration: 'Session Recording',
         embedUrl: 'https://drive.google.com/file/d/1GsimyMwTfRO2-y7WTGmJngt5RepkHIe9/preview'
+      },
+      {
+        id: 'css-lec-2',
+        title: 'CSS — Lecture 2',
+        description: 'CSS Box Model, text properties, and styling fundamentals.',
+        duration: 'Session Recording',
+        embedUrl: 'https://drive.google.com/file/d/1dLSfJCBNOlP6GOMJPObFafLIm1-Oeog1/preview'
       }
     ]
   }
@@ -206,20 +213,72 @@ function TopicSection({ topic }) {
   );
 }
 
-// ─── Notes Tab (placeholder) ──────────────────────────────────────────────────
+// ─── Notes Data ───────────────────────────────────────────────────────────────
+const NOTES_DATA = [
+  {
+    id: 'git-notes',
+    title: 'Git & GitHub Notes',
+    description: 'Comprehensive guide covering version control basics, repository management, and collaboration workflows.',
+    url: 'https://drive.google.com/file/d/17HlIglnw0RgRcsk2dsTNqjhKxaViOvqI/view?usp=sharing',
+    icon: GitBranch,
+    color: 'from-violet-600 to-indigo-600',
+    bgLight: 'bg-violet-50',
+    textColor: 'text-violet-700',
+    borderColor: 'border-violet-200',
+  },
+  {
+    id: 'html-notes',
+    title: 'HTML Notes',
+    description: 'Detailed cheat sheet and reference for HTML5 tags, document structure, and semantic elements.',
+    url: 'https://drive.google.com/file/d/1GaXTjo48OpYVGq6ZeJshgHTd0eNRouNN/view?usp=sharing',
+    icon: FileText,
+    color: 'from-orange-600 to-red-600',
+    bgLight: 'bg-orange-50',
+    textColor: 'text-orange-700',
+    borderColor: 'border-orange-200',
+  }
+];
+
+// ─── Notes Tab ────────────────────────────────────────────────────────────────
 function NotesTab() {
   return (
-    <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
-      <div className="w-14 h-14 bg-zinc-100 rounded-2xl flex items-center justify-center">
-        <FileText className="w-6 h-6 text-zinc-400" />
+    <div className="space-y-4">
+      <div className="flex items-center gap-2 px-4 py-3 bg-emerald-50 border border-emerald-100 rounded-xl mb-4">
+        <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+        <p className="text-xs text-emerald-800">
+          Click on any note card to open the PDF reference material in a new tab.
+        </p>
       </div>
-      <h3 className="text-sm font-bold text-zinc-700">Notes Coming Soon</h3>
-      <p className="text-xs text-zinc-400 max-w-xs leading-relaxed">
-        Lecture notes, cheat sheets, and reference materials will be uploaded here after each session.
-      </p>
-      <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-full">
-        Check back after each class
-      </span>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {NOTES_DATA.map((note) => {
+          const Icon = note.icon;
+          return (
+            <a
+              key={note.id}
+              href={note.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-start gap-4 p-5 bg-white border border-zinc-200/80 rounded-xl hover:shadow-md hover:border-zinc-300 transition-all group"
+            >
+              <div className={`flex-shrink-0 p-2.5 bg-gradient-to-br ${note.color} rounded-xl shadow-sm group-hover:scale-105 transition-transform`}>
+                <Icon className="w-5 h-5 text-white" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-sm font-bold text-zinc-900 group-hover:text-emerald-600 transition-colors truncate">
+                  {note.title}
+                </h3>
+                <p className="text-xs text-zinc-500 mt-1 leading-relaxed line-clamp-2">
+                  {note.description}
+                </p>
+                <span className={`inline-block mt-3 text-[10px] font-bold ${note.textColor} ${note.bgLight} border ${note.borderColor} px-2.5 py-1 rounded-full`}>
+                  View PDF
+                </span>
+              </div>
+            </a>
+          );
+        })}
+      </div>
     </div>
   );
 }
