@@ -63,6 +63,13 @@ const CURRICULUM = [
         description: 'CSS Box Model, text properties, and styling fundamentals.',
         duration: 'Session Recording',
         embedUrl: 'https://drive.google.com/file/d/1dLSfJCBNOlP6GOMJPObFafLIm1-Oeog1/preview'
+      },
+      {
+        id: 'css-lec-3',
+        title: 'CSS — Lecture 3',
+        description: 'CSS-3 lecture: Deep dive into flexbox architecture with examples of a sample design page.',
+        duration: 'Session Recording',
+        embedUrl: 'https://drive.google.com/file/d/1XJ7wYAmcFa8b0avmC6yqqW68K6eQS8dZ/preview'
       }
     ]
   }
