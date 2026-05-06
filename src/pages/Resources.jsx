@@ -70,6 +70,13 @@ const CURRICULUM = [
         description: 'CSS-3 lecture: Deep dive into flexbox architecture with examples of a sample design page.',
         duration: 'Session Recording',
         embedUrl: 'https://drive.google.com/file/d/1XJ7wYAmcFa8b0avmC6yqqW68K6eQS8dZ/preview'
+      },
+      {
+        id: 'css-lec-4',
+        title: 'CSS — Lecture 4',
+        description: 'CSS-4 lecture: Position and overflow property and scale and transform property.',
+        duration: 'Session Recording',
+        embedUrl: 'https://drive.google.com/file/d/1MGpCg5pqac2LSHUuSZDADH_FMKbxQ7oN/preview'
       }
     ]
   }
