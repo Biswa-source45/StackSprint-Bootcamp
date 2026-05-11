@@ -77,6 +77,20 @@ const CURRICULUM = [
         description: 'CSS-4 lecture: Position and overflow property and scale and transform property.',
         duration: 'Session Recording',
         embedUrl: 'https://drive.google.com/file/d/1MGpCg5pqac2LSHUuSZDADH_FMKbxQ7oN/preview'
+      },
+      {
+        id: 'css-lec-5',
+        title: 'CSS — Lecture 5',
+        description: 'CSS-5 lecture: UI/UX design principles and AI tools like Google stitch.',
+        duration: 'Session Recording',
+        embedUrl: 'https://drive.google.com/file/d/1bscWR_cYMLaZO1LMIHYgZnrw_RNJuUpM/preview'
+      },
+      {
+        id: 'css-lec-6',
+        title: 'CSS — Lecture 6',
+        description: 'CSS-6 lecture: Transition property and functions (delay, timing functions, duration).',
+        duration: 'Session Recording',
+        embedUrl: 'https://drive.google.com/file/d/150R8pfsRyu4bIE_dkBIL5mHf5AiDs76r/preview'
       }
     ]
   }
