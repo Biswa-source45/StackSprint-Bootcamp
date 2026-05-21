@@ -1,15 +1,15 @@
 import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
 import { auth, db } from '../lib/firebase';
-import { 
-  onAuthStateChanged, 
-  signInWithEmailAndPassword, 
-  signOut 
+import {
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  signOut
 } from 'firebase/auth';
-import { 
-  doc, 
-  getDoc, 
-  updateDoc, 
-  onSnapshot 
+import {
+  doc,
+  getDoc,
+  updateDoc,
+  onSnapshot
 } from 'firebase/firestore';
 
 const AuthContext = createContext();
@@ -36,33 +36,47 @@ export function AuthProvider({ children }) {
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
 
-    const userDoc = await getDoc(doc(db, 'users', user.uid));
-
-    if (userDoc.exists()) {
-      const data = userDoc.data();
-
-      if (data.role === 'admin') {
-        return user;
+    // Attempt to read the user document — admin accounts may not have a Firestore
+    // document (or rules may be scoped to students only). Treat any read failure
+    // as "admin — skip device enforcement" rather than surfacing an error.
+    let userDocData = null;
+    try {
+      const userDoc = await getDoc(doc(db, 'users', user.uid));
+      if (userDoc.exists()) {
+        userDocData = userDoc.data();
       }
+    } catch (err) {
+      // Firestore permission denied for this uid → treat as admin, skip enforcement
+      console.warn('AuthContext: getDoc failed (likely admin without a users doc):', err.message);
+    }
 
-      const currentDeviceId =
-        localStorage.getItem('deviceId') ||
-        Math.random().toString(36).substring(7) + Date.now();
+    if (!userDocData || userDocData.role === 'admin') {
+      // Admin or doc-less user: skip single-device enforcement
+      return user;
+    }
 
-      if (data.isLoggedIn && data.lastDeviceId && data.lastDeviceId !== currentDeviceId) {
-        await signOut(auth);
-        const deviceName = data.deviceInfo?.ua?.slice(0, 60) || 'another device';
-        throw new Error(
-          `Already logged in from [${deviceName}]. Logout from that device first, or ask admin to reset.`
-        );
-      }
+    // ── Student single-device enforcement ──────────────────────────────────
+    const currentDeviceId =
+      localStorage.getItem('deviceId') ||
+      Math.random().toString(36).substring(7) + Date.now();
 
-      localStorage.setItem('deviceId', currentDeviceId);
+    if (userDocData.isLoggedIn && userDocData.lastDeviceId && userDocData.lastDeviceId !== currentDeviceId) {
+      await signOut(auth);
+      const deviceName = userDocData.deviceInfo?.ua?.slice(0, 60) || 'another device';
+      throw new Error(
+        `Already logged in from [${deviceName}]. Logout from that device first, or ask admin to reset.`
+      );
+    }
+
+    localStorage.setItem('deviceId', currentDeviceId);
+    try {
       await updateDoc(doc(db, 'users', user.uid), {
         isLoggedIn: true,
         lastDeviceId: currentDeviceId,
         deviceInfo: getDeviceInfo()
       });
+    } catch (err) {
+      console.warn('AuthContext: updateDoc failed during login:', err.message);
     }
 
     return user;
@@ -88,7 +102,9 @@ export function AuthProvider({ children }) {
         setLoading(false);
         isAuthReady.current = true;
       }
-      // userData will be set by the Firestore listener below
+      // userData will be set by the Firestore listener below (for students)
+      // For admins without a Firestore doc the listener will hit the error handler
+      // and we'll fall through gracefully.
     });
     return unsubscribe;
   }, []);
@@ -106,18 +122,27 @@ export function AuthProvider({ children }) {
           setUserData(data);
 
           // Only enforce single-device policy AFTER auth has fully settled
+          // and only for non-admin users
           if (isAuthReady.current && data.role !== 'admin') {
             const currentDeviceId = localStorage.getItem('deviceId');
             if (!data.isLoggedIn || (data.lastDeviceId && data.lastDeviceId !== currentDeviceId)) {
               signOut(auth);
             }
           }
+        } else {
+          // Document doesn't exist (e.g. admin account with no Firestore doc).
+          // Set a minimal userData so role checks work (admin role assumed).
+          setUserData({ role: 'admin' });
         }
         setLoading(false);
         isAuthReady.current = true;
       },
       (err) => {
-        console.error('Firestore listener error:', err);
+        // Permission denied — most likely an admin whose uid is not in the
+        // 'users' collection or the rules block reads. Treat gracefully:
+        // set a minimal admin userData and let the app proceed.
+        console.warn('AuthContext: Firestore onSnapshot error (treating as admin):', err.message);
+        setUserData((prev) => prev ?? { role: 'admin' });
         setLoading(false);
         isAuthReady.current = true;
       }

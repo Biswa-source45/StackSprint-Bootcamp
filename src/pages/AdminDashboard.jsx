@@ -129,15 +129,20 @@ export default function AdminDashboard() {
 
   // ── Real-time listeners ──────────────────────────────────────────────────
   useEffect(() => {
-    const unsubCourses = onSnapshot(collection(db, 'courses'), (snap) =>
-      setCourses(snap.docs.map((d) => ({ id: d.id, ...d.data() })))
+    const unsubCourses = onSnapshot(
+      collection(db, 'courses'),
+      (snap) => setCourses(snap.docs.map((d) => ({ id: d.id, ...d.data() }))),
+      (err) => toast.error('Cannot load courses: ' + err.message, { id: 'courses-err' })
     );
-    const unsubStudents = onSnapshot(collection(db, 'users'), (snap) =>
-      setStudents(
-        snap.docs
-          .filter((d) => d.data().role !== 'admin')
-          .map((d) => ({ id: d.id, ...d.data() }))
-      )
+    const unsubStudents = onSnapshot(
+      collection(db, 'users'),
+      (snap) =>
+        setStudents(
+          snap.docs
+            .filter((d) => d.data().role !== 'admin')
+            .map((d) => ({ id: d.id, ...d.data() }))
+        ),
+      (err) => toast.error('Cannot load students: ' + err.message, { id: 'students-err' })
     );
     return () => { unsubCourses(); unsubStudents(); };
   }, []);

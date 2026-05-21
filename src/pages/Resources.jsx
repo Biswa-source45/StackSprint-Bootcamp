@@ -91,6 +91,13 @@ const CURRICULUM = [
         description: 'CSS-6 lecture: Transition property and functions (delay, timing functions, duration).',
         duration: 'Session Recording',
         embedUrl: 'https://drive.google.com/file/d/150R8pfsRyu4bIE_dkBIL5mHf5AiDs76r/preview'
+      },
+      {
+        id: 'css-lec-7',
+        title: 'CSS — Lecture 7',
+        description: 'CSS-7 lecture: CSS Modules & Animation — scoped CSS modules in React, keyframes, transitions, and hover effects.',
+        duration: 'Session Recording',
+        embedUrl: 'https://drive.google.com/file/d/1_0MSDLIKqJ7kXMoWIHZoh7lDj7t4dbbx/preview'
       }
     ]
   }

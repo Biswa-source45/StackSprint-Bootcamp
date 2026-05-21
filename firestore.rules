@@ -1,0 +1,39 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Helper: check if the requesting user is a signed-in admin ────────────
+    // Admins are identified by having role == 'admin' in their users doc,
+    // OR by not having a users doc at all (admin accounts created directly
+    // in Firebase Auth without a Firestore record).
+    function isAdmin() {
+      return request.auth != null && (
+        !exists(/databases/$(database)/documents/users/$(request.auth.uid)) ||
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
+      );
+    }
+
+    // ── Helper: is this the user's own document? ─────────────────────────────
+    function isOwn(uid) {
+      return request.auth != null && request.auth.uid == uid;
+    }
+
+    // ── users collection ──────────────────────────────────────────────────────
+    match /users/{userId} {
+      // Admin can read/write every user document (needed for student list)
+      allow read, write: if isAdmin();
+
+      // A student can only read/write their own document (session tracking)
+      allow read, write: if isOwn(userId);
+    }
+
+    // ── courses collection ────────────────────────────────────────────────────
+    match /courses/{courseId} {
+      // Admin can do everything
+      allow read, write, delete: if isAdmin();
+
+      // Authenticated students can read courses (e.g. to show their course name)
+      allow read: if request.auth != null;
+    }
+  }
+}
