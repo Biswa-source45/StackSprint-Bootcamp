@@ -99,6 +99,13 @@ const CURRICULUM = [
         description: 'CSS-7 lecture: CSS Modules & Animation — scoped CSS modules in React, keyframes, transitions, and hover effects.',
         duration: 'Session Recording',
         embedUrl: 'https://drive.google.com/file/d/1_0MSDLIKqJ7kXMoWIHZoh7lDj7t4dbbx/preview'
+      },
+      {
+        id: 'css-lec-8',
+        title: 'CSS — Lecture 8',
+        description: 'CSS-8 lecture: Responsive design, media queries, mobile-first approach, and fluid layouts.',
+        duration: 'Session Recording',
+        embedUrl: 'https://drive.google.com/file/d/1TD37eu9kd4LKMQVu5O6Akhbfj28knsYp/preview'
       }
     ]
   },
