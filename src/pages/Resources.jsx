@@ -10,7 +10,8 @@ import {
   Home,
   Loader2,
   CheckCircle2,
-  Palette
+  Palette,
+  Code
 } from 'lucide-react';
 
 
@@ -98,6 +99,24 @@ const CURRICULUM = [
         description: 'CSS-7 lecture: CSS Modules & Animation — scoped CSS modules in React, keyframes, transitions, and hover effects.',
         duration: 'Session Recording',
         embedUrl: 'https://drive.google.com/file/d/1_0MSDLIKqJ7kXMoWIHZoh7lDj7t4dbbx/preview'
+      }
+    ]
+  },
+  {
+    id: 'javascript',
+    topic: 'JavaScript',
+    icon: Code,
+    color: 'from-amber-600 to-orange-600',
+    bgLight: 'bg-amber-50',
+    textColor: 'text-amber-700',
+    borderColor: 'border-amber-200',
+    lectures: [
+      {
+        id: 'js-lec-1',
+        title: 'JavaScript — Lecture 1',
+        description: 'Introduction to JavaScript: variables, scope (var, let, const), data types, and core fundamentals.',
+        duration: 'Session Recording',
+        embedUrl: 'https://drive.google.com/file/d/1ebs6eNP9KojznDfA86xZNaQY3IFCRlY2/preview'
       }
     ]
   }
