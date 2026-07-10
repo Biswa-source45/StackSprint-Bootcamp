@@ -124,6 +124,13 @@ const CURRICULUM = [
         description: 'Introduction to JavaScript: variables, scope (var, let, const), data types, and core fundamentals.',
         duration: 'Session Recording',
         embedUrl: 'https://drive.google.com/file/d/1ebs6eNP9KojznDfA86xZNaQY3IFCRlY2/preview'
+      },
+      {
+        id: 'js-lec-2',
+        title: 'JavaScript — Lecture 2',
+        description: 'JavaScript DOM: Document Object Model, selecting/manipulating elements, event listeners, and dynamic web page interactivity.',
+        duration: 'Session Recording',
+        embedUrl: 'https://drive.google.com/file/d/1UUrVeS92cRoEC2XtsuR3TKG8JnEEH2_l/preview'
       }
     ]
   }
