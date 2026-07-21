@@ -131,6 +131,13 @@ const CURRICULUM = [
         description: 'JavaScript DOM: Document Object Model, selecting/manipulating elements, event listeners, and dynamic web page interactivity.',
         duration: 'Session Recording',
         embedUrl: 'https://drive.google.com/file/d/1UUrVeS92cRoEC2XtsuR3TKG8JnEEH2_l/preview'
+      },
+      {
+        id: 'js-rev-1',
+        title: 'JavaScript Revision — Part 1',
+        description: 'Comprehensive review of JavaScript fundamentals, variables, functions, and DOM manipulation basics.',
+        duration: 'Session Recording',
+        embedUrl: 'https://drive.google.com/file/d/1EFH6Bu0U8V3P8HmcHLL3WPfM2X_6xbEK/preview'
       }
     ]
   }
