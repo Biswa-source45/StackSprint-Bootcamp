@@ -11,7 +11,8 @@ import {
   Loader2,
   CheckCircle2,
   Palette,
-  Code
+  Code,
+  Atom
 } from 'lucide-react';
 
 
@@ -138,6 +139,38 @@ const CURRICULUM = [
         description: 'Comprehensive review of JavaScript fundamentals, variables, functions, and DOM manipulation basics.',
         duration: 'Session Recording',
         embedUrl: 'https://drive.google.com/file/d/1EFH6Bu0U8V3P8HmcHLL3WPfM2X_6xbEK/preview'
+      },
+      {
+        id: 'js-lec-3',
+        title: 'JavaScript — Lecture 3',
+        description: 'JavaScript Fetch API & Promises: Understanding asynchronous programming, promises, resolve/reject, and APIs.',
+        duration: 'Session Recording',
+        embedUrl: 'https://drive.google.com/file/d/16T4kifyPfEocgf7EsHW1XLIlXO0EZfsZ/preview'
+      },
+      {
+        id: 'js-rev-2',
+        title: 'JavaScript Revision — Part 2',
+        description: 'Comprehensive revision of advanced JavaScript concepts, callback functions, asynchronous flows, and API integration.',
+        duration: 'Session Recording',
+        embedUrl: 'https://drive.google.com/file/d/11iQV8sS2IBhlJDwUCSeJ20D-ahLLRleX/preview'
+      }
+    ]
+  },
+  {
+    id: 'react',
+    topic: 'React',
+    icon: Atom,
+    color: 'from-cyan-600 to-blue-600',
+    bgLight: 'bg-cyan-50',
+    textColor: 'text-cyan-700',
+    borderColor: 'border-cyan-200',
+    lectures: [
+      {
+        id: 'react-lec-1',
+        title: 'React — Lecture 1',
+        description: 'Introduction to React: Library overview, virtual DOM, JSX, components, and environment setup.',
+        duration: 'Session Recording',
+        embedUrl: 'https://drive.google.com/file/d/1Ona7MWOERuZdRfZbVPA3ume2aw8BaDJ5/preview'
       }
     ]
   }
