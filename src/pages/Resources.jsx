@@ -134,18 +134,18 @@ const CURRICULUM = [
         embedUrl: 'https://drive.google.com/file/d/1UUrVeS92cRoEC2XtsuR3TKG8JnEEH2_l/preview'
       },
       {
-        id: 'js-rev-1',
-        title: 'JavaScript Revision — Part 1',
-        description: 'Comprehensive review of JavaScript fundamentals, variables, functions, and DOM manipulation basics.',
-        duration: 'Session Recording',
-        embedUrl: 'https://drive.google.com/file/d/1EFH6Bu0U8V3P8HmcHLL3WPfM2X_6xbEK/preview'
-      },
-      {
         id: 'js-lec-3',
         title: 'JavaScript — Lecture 3',
         description: 'JavaScript Fetch API & Promises: Understanding asynchronous programming, promises, resolve/reject, and APIs.',
         duration: 'Session Recording',
         embedUrl: 'https://drive.google.com/file/d/16T4kifyPfEocgf7EsHW1XLIlXO0EZfsZ/preview'
+      },
+      {
+        id: 'js-rev-1',
+        title: 'JavaScript Revision — Part 1',
+        description: 'Comprehensive review of JavaScript fundamentals, variables, functions, and DOM manipulation basics.',
+        duration: 'Session Recording',
+        embedUrl: 'https://drive.google.com/file/d/1EFH6Bu0U8V3P8HmcHLL3WPfM2X_6xbEK/preview'
       },
       {
         id: 'js-rev-2',
@@ -171,6 +171,13 @@ const CURRICULUM = [
         description: 'Introduction to React: Library overview, virtual DOM, JSX, components, and environment setup.',
         duration: 'Session Recording',
         embedUrl: 'https://drive.google.com/file/d/1Ona7MWOERuZdRfZbVPA3ume2aw8BaDJ5/preview'
+      },
+      {
+        id: 'react-lec-2',
+        title: 'React — Lecture 2',
+        description: 'React components, props, state management, event handling, and conditional rendering.',
+        duration: 'Session Recording',
+        embedUrl: 'https://drive.google.com/file/d/1-5vK0W4YGzPmhXtVkl1KYbHmuDLyIQXQ/preview'
       }
     ]
   }
