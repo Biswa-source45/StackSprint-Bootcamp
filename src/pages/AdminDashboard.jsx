@@ -46,7 +46,8 @@ import {
   Wallet,
   ArrowRight,
   Home,
-  LayoutGrid
+  LayoutGrid,
+  Download
 } from 'lucide-react';
 
 // ── Secondary Firebase app (for creating students without logging out admin) ──
@@ -295,6 +296,97 @@ export default function AdminDashboard() {
     0
   );
 
+  // ── CSV Export ───────────────────────────────────────────────────────────
+  const handleExportCSV = () => {
+    if (!students || students.length === 0) {
+      toast.error('No student records available to export.');
+      return;
+    }
+
+    try {
+      const headers = [
+        'Student Name',
+        'Email Address',
+        'Contact Number',
+        'College / Institute',
+        'Enrolled Course',
+        'Payment Status',
+        'Total Fee (INR)',
+        'Amount Paid (INR)',
+        'Pending Amount (INR)',
+        'Session Status',
+        'Enrollment Date'
+      ];
+
+      const escapeCsv = (val) => {
+        if (val === null || val === undefined) return '""';
+        const str = String(val).replace(/"/g, '""');
+        return `"${str}"`;
+      };
+
+      const rows = students.map((s) => {
+        const name = s.name || '';
+        const email = s.email || '';
+        const mobile = s.mobile || '';
+        const college = s.college || '';
+        const course = s.courseName || '—';
+
+        let payStatus = 'Unpaid';
+        if (s.paymentStatus === 'yes') payStatus = 'Paid in Full';
+        else if (s.paymentStatus === 'partial') payStatus = 'Partial Payment';
+
+        const totalFee = Number(s.totalFee || 0);
+        const paidAmount = Number(s.paidAmount || 0);
+        const pendingAmount = Math.max(0, totalFee - paidAmount);
+        const sessionStatus = s.isLoggedIn ? 'Active' : 'Offline';
+
+        let enrollDate = '—';
+        if (s.createdAt) {
+          try {
+            enrollDate = new Date(s.createdAt).toLocaleDateString('en-IN', {
+              day: '2-digit',
+              month: 'short',
+              year: 'numeric'
+            });
+          } catch (e) {
+            enrollDate = s.createdAt;
+          }
+        }
+
+        return [
+          escapeCsv(name),
+          escapeCsv(email),
+          escapeCsv(mobile),
+          escapeCsv(college),
+          escapeCsv(course),
+          escapeCsv(payStatus),
+          totalFee,
+          paidAmount,
+          pendingAmount,
+          escapeCsv(sessionStatus),
+          escapeCsv(enrollDate)
+        ].join(',');
+      });
+
+      const csvContent = '\uFEFF' + [headers.join(','), ...rows].join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      const dateStr = new Date().toISOString().split('T')[0];
+      link.setAttribute('href', url);
+      link.setAttribute('download', `StackSprint_Students_Directory_${dateStr}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      toast.success(`Exported ${students.length} student record(s) to CSV!`);
+    } catch (err) {
+      console.error('Export CSV error:', err);
+      toast.error('Failed to export student data: ' + err.message);
+    }
+  };
+
   // ── Render ───────────────────────────────────────────────────────────────
   return (
     <div className="pt-20 pb-12 px-4 md:px-6 max-w-7xl mx-auto min-h-screen">
@@ -373,19 +465,31 @@ export default function AdminDashboard() {
       {/* ════════════ STUDENTS TAB ════════════════════════════════════════ */}
       {activeTab === 'students' && (
         <Card className="border-zinc-200/70 shadow-sm overflow-hidden">
-          <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-100">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 px-5 py-4 border-b border-zinc-100">
             <h2 className="text-sm font-bold text-zinc-900">
               Student Directory
               <span className="ml-2 text-xs font-normal text-zinc-400">({students.length})</span>
             </h2>
-            <Button
-              size="sm"
-              onClick={() => setActiveTab('addStudent')}
-              className="h-8 text-xs rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white px-3"
-            >
-              <UserPlus className="w-3.5 h-3.5 mr-1.5" />
-              Enroll Student
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleExportCSV}
+                className="h-8 text-xs rounded-lg border-zinc-200 text-zinc-700 hover:bg-zinc-50 px-3 transition-colors"
+                title="Export student directory to CSV spreadsheet"
+              >
+                <Download className="w-3.5 h-3.5 mr-1.5 text-zinc-500" />
+                Export Data
+              </Button>
+              <Button
+                size="sm"
+                onClick={() => setActiveTab('addStudent')}
+                className="h-8 text-xs rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white px-3"
+              >
+                <UserPlus className="w-3.5 h-3.5 mr-1.5" />
+                Enroll Student
+              </Button>
+            </div>
           </div>
 
           {students.length === 0 ? (
