@@ -1,12 +1,11 @@
 import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { 
-  Rocket, 
-  Target, 
-  Users, 
-  Medal, 
-  Search, 
-  ChevronRight, 
+import {
+  Rocket,
+  Target,
+  Users,
+  Medal,
+  ChevronRight,
   Home,
   CheckCircle2,
   Cpu,
@@ -22,6 +21,8 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import AetheraNavbar from '../components/layout/AetheraNavbar';
+import { Footer } from '../components/layout/Footer';
 
 const perks = [
   { icon: Target, title: "100% Practical", desc: "Zero boring theory. Every session is execution-focused." },
@@ -65,7 +66,6 @@ const curriculumData = [
 
 export function About() {
   useEffect(() => {
-    // Fire confetti on page mount for a "wow" start
     const duration = 3 * 1000;
     const animationEnd = Date.now() + duration;
     const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
@@ -74,7 +74,7 @@ export function About() {
       return Math.random() * (max - min) + min;
     }
 
-    const interval = setInterval(function() {
+    const interval = setInterval(function () {
       const timeLeft = animationEnd - Date.now();
 
       if (timeLeft <= 0) {
@@ -90,22 +90,18 @@ export function About() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-white text-zinc-900 selection:bg-emerald-200 selection:text-emerald-900 overflow-x-hidden w-full relative pt-20">
-      {/* Background Decor Layer */}
-      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-        <div className="absolute inset-0 bg-grid-dashed mask-radial-fade opacity-[0.5]"></div>
-        <div className="absolute top-[-10%] left-[-15%] w-[70vw] h-[70vw] rounded-full bg-emerald-400/10 blur-[120px]"></div>
-        <div className="absolute top-[-10%] right-[-15%] w-[70vw] h-[70vw] rounded-full bg-orange-400/10 blur-[130px]"></div>
-      </div>
+    <div className="min-h-screen bg-white text-black font-inter overflow-x-hidden w-full relative">
+      {/* Header Navigation */}
+      <AetheraNavbar activePage="About" />
 
       <div className="relative z-10 max-w-6xl mx-auto px-6 py-12">
         {/* Breadcrumb */}
-        <nav className="flex items-center gap-2 text-sm text-zinc-500 mb-12">
-          <Link to="/" className="hover:text-emerald-600 transition-colors flex items-center gap-1">
+        <nav className="flex items-center gap-2 text-sm text-black/60 mb-12 font-medium">
+          <Link to="/" className="hover:text-black transition-colors flex items-center gap-1">
             <Home className="w-4 h-4" /> Home
           </Link>
           <ChevronRight className="w-3.5 h-3.5" />
-          <span className="text-zinc-900 font-medium">About</span>
+          <span className="text-black font-medium">About</span>
         </nav>
 
         {/* Hero Section */}
@@ -115,57 +111,53 @@ export function About() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold uppercase tracking-wider mb-6">
-              <Star className="w-3 h-3 fill-emerald-500" /> Our Mission
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-black/5 text-black text-xs font-semibold tracking-widest uppercase mb-6 border border-black/10">
+              <Star className="w-3.5 h-3.5 fill-black" /> Our Mission
             </div>
-            <h1 className="text-4xl md:text-6xl font-bold tracking-tight text-zinc-900 mb-8 leading-[1.1]">
+            <h1 className="text-4xl md:text-6xl font-normal font-instrument tracking-[-1.5px] text-black mb-8 leading-[1.1]">
               From Beginner to <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-emerald-400">
+              <span className="italic text-black/75">
                 Real-World Developer
               </span>
             </h1>
-            <p className="text-lg text-zinc-600 mb-8 leading-relaxed">
+            <p className="text-base sm:text-lg text-black/80 font-medium mb-8 leading-relaxed">
               Builders Bootcamp is a 70-day intensive program designed to transform aspiring engineers into interview-ready intermediate fullstack developers. We believe in practical, execution-focused learning—avoiding boring theory to build elite careers.
             </p>
             <div className="flex flex-wrap gap-4">
-              <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-zinc-200 shadow-sm">
-                <Medal className="w-5 h-5 text-yellow-500" />
-                <span className="text-sm font-semibold">Job-Ready Skills</span>
+              <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-black/10 shadow-sm">
+                <Medal className="w-4 h-4 text-black" />
+                <span className="text-sm font-medium text-black">Job-Ready Skills</span>
               </div>
-              <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-zinc-200 shadow-sm">
-                <Medal className="w-5 h-5 text-emerald-500" />
-                <span className="text-sm font-semibold">₹1299 Price Lock</span>
+              <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-black/10 shadow-sm">
+                <Medal className="w-4 h-4 text-black" />
+                <span className="text-sm font-medium text-black">₹1299 Price Lock</span>
               </div>
             </div>
           </motion.div>
 
-          <motion.div 
+          <motion.div
             className="relative"
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8, delay: 0.2 }}
           >
-            <div className="aspect-square rounded-[3rem] bg-zinc-900 p-8 flex flex-col justify-center relative overflow-hidden group">
-               {/* Abstract graphics */}
-               <div className="absolute -top-10 -right-10 w-40 h-40 bg-emerald-500/20 rounded-full blur-3xl animate-pulse" />
-               <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-orange-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
-               
-               <div className="relative z-10 space-y-6">
-                  <div className="text-white">
-                    <div className="text-5xl font-bold mb-2">70+</div>
-                    <div className="text-zinc-400 font-medium tracking-wide uppercase text-xs">Intensive Days</div>
-                  </div>
-                  <div className="h-px bg-white/10" />
-                  <div className="text-white">
-                    <div className="text-5xl font-bold mb-2">10+</div>
-                    <div className="text-zinc-400 font-medium tracking-wide uppercase text-xs">Mini Projects</div>
-                  </div>
-                  <div className="h-px bg-white/10" />
-                  <div className="text-white">
-                    <div className="text-5xl font-bold mb-2">100%</div>
-                    <div className="text-zinc-400 font-medium tracking-wide uppercase text-xs">Practical Work</div>
-                  </div>
-               </div>
+            <div className="aspect-square rounded-[3rem] bg-black p-8 flex flex-col justify-center relative overflow-hidden shadow-2xl border border-black">
+              <div className="relative z-10 space-y-6">
+                <div className="text-white">
+                  <div className="text-5xl font-normal font-instrument mb-1">70+</div>
+                  <div className="text-white/60 font-medium tracking-widest uppercase text-xs">Intensive Days</div>
+                </div>
+                <div className="h-px bg-white/10" />
+                <div className="text-white">
+                  <div className="text-5xl font-normal font-instrument mb-1">10+</div>
+                  <div className="text-white/60 font-medium tracking-widest uppercase text-xs">Mini Projects</div>
+                </div>
+                <div className="h-px bg-white/10" />
+                <div className="text-white">
+                  <div className="text-5xl font-normal font-instrument mb-1">100%</div>
+                  <div className="text-white/60 font-medium tracking-widest uppercase text-xs">Practical Work</div>
+                </div>
+              </div>
             </div>
           </motion.div>
         </div>
@@ -173,72 +165,82 @@ export function About() {
         {/* Why Builders Bootcamp */}
         <div className="mb-32">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold mb-4">Why This Program?</h2>
-            <p className="text-zinc-600">The core strengths that make us different.</p>
+            <span className="text-xs font-semibold tracking-widest text-black/60 uppercase mb-3 block">
+              CORE STRENGTHS
+            </span>
+            <h2 className="text-4xl md:text-6xl font-normal tracking-[-1.5px] font-instrument text-black mb-4">
+              Why This Program?
+            </h2>
+            <p className="text-base text-black/80 font-medium">The core principles that make us different.</p>
           </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {perks.map((perk, i) => (
               <motion.div
                 key={i}
-                className="p-8 rounded-3xl bg-white border border-zinc-100 shadow-xl shadow-zinc-200/20 hover:border-emerald-500/30 transition-all hover:-translate-y-1 group"
+                className="p-8 rounded-3xl bg-white border border-black/10 shadow-sm hover:border-black hover:shadow-xl transition-all duration-500 group"
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.1 }}
               >
-                <div className="w-12 h-12 rounded-2xl bg-zinc-900 flex items-center justify-center mb-6 group-hover:bg-emerald-600 transition-colors">
-                  <perk.icon className="w-6 h-6 text-white" />
+                <div className="w-12 h-12 rounded-2xl bg-black/5 text-black flex items-center justify-center mb-6 group-hover:bg-black group-hover:text-white transition-all duration-500">
+                  <perk.icon className="w-5 h-5" />
                 </div>
-                <h3 className="font-bold text-lg mb-3">{perk.title}</h3>
-                <p className="text-sm text-zinc-500 leading-relaxed">{perk.desc}</p>
+                <h3 className="font-instrument text-2xl font-normal mb-2 text-black">{perk.title}</h3>
+                <p className="text-sm text-black/70 font-medium leading-relaxed">{perk.desc}</p>
               </motion.div>
             ))}
           </div>
         </div>
 
-        {/* Detailed Curriculum Section - Using Shadcn Accordion */}
+        {/* Detailed Curriculum Section */}
         <div className="mb-32">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16">
             <div className="max-w-2xl">
-              <h2 className="text-3xl md:text-5xl font-bold tracking-tight mb-4">Deep Learning Curve.</h2>
-              <p className="text-zinc-600 text-lg">A module-by-module breakdown of everything you'll master during these 70 days.</p>
+              <span className="text-xs font-semibold tracking-widest text-black/60 uppercase mb-3 block">
+                CURRICULUM BREAKDOWN
+              </span>
+              <h2 className="text-4xl md:text-6xl font-normal tracking-[-1.5px] font-instrument text-black mb-4">
+                Deep Learning Curve.
+              </h2>
+              <p className="text-base text-black/80 font-medium">A module-by-module breakdown of everything you'll master during these 70 days.</p>
             </div>
-            <div className="flex items-center gap-2 text-sm font-semibold bg-emerald-50 text-emerald-700 px-4 py-2 rounded-full border border-emerald-100 uppercase tracking-tighter">
-              <CheckCircle2 className="w-4 h-4" /> 70 Days Path
+            <div className="flex items-center gap-2 text-xs font-semibold bg-black/5 text-black px-4 py-2 rounded-full border border-black/10 uppercase tracking-widest shrink-0">
+              <CheckCircle2 className="w-4 h-4 text-black" /> 70 Days Path
             </div>
           </div>
 
-          <div className="bg-zinc-50/50 rounded-[2.5rem] border border-zinc-100 p-6 md:p-12">
+          <div className="bg-black/[0.02] rounded-[2.5rem] border border-black/10 p-6 md:p-10">
             <Accordion type="single" collapsible className="w-full space-y-4">
               {curriculumData.map((mod, i) => (
-                <AccordionItem 
-                  key={i} 
+                <AccordionItem
+                  key={i}
                   value={`item-${i}`}
-                  className="bg-white border border-zinc-200 rounded-2xl px-6 py-2 shadow-sm data-[state=open]:border-emerald-500/30 data-[state=open]:ring-4 data-[state=open]:ring-emerald-500/5 transition-all overflow-hidden"
+                  className="bg-white border border-black/10 rounded-2xl px-6 py-2 shadow-sm data-[state=open]:border-black transition-all overflow-hidden"
                 >
-                  <AccordionTrigger className="text-left font-bold text-lg md:text-xl py-6 hover:no-underline hover:text-emerald-600 transition-colors">
+                  <AccordionTrigger className="text-left font-normal font-instrument text-2xl py-6 hover:no-underline text-black transition-colors">
                     {mod.module}
                   </AccordionTrigger>
                   <AccordionContent className="pb-8">
-                    <div className="grid md:grid-cols-12 gap-8 pt-4 border-t border-zinc-100 mt-2">
-                       <div className="md:col-span-8">
-                          <p className="text-zinc-600 leading-relaxed text-base mb-6">
-                            {mod.desc}
-                          </p>
-                          <div className="grid sm:grid-cols-2 gap-3">
-                            {mod.topics.map((topic, j) => (
-                              <div key={j} className="flex items-center gap-3 p-3 rounded-xl bg-zinc-50 border border-zinc-100 group hover:bg-emerald-50 hover:border-emerald-100 transition-colors">
-                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                                <span className="text-sm text-zinc-700 font-medium">{topic}</span>
-                              </div>
-                            ))}
-                          </div>
-                       </div>
-                       <div className="md:col-span-4 bg-zinc-50 rounded-2xl p-6 flex flex-col justify-center items-center text-center border border-zinc-100">
-                          <Rocket className="w-8 h-8 text-emerald-500 mb-4 animate-bounce" />
-                          <div className="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-1">Module Style</div>
-                          <div className="text-lg font-bold text-zinc-900 italic">Project-First</div>
-                       </div>
+                    <div className="grid md:grid-cols-12 gap-8 pt-4 border-t border-black/10 mt-2">
+                      <div className="md:col-span-8">
+                        <p className="text-black/70 font-medium leading-relaxed text-base mb-6">
+                          {mod.desc}
+                        </p>
+                        <div className="grid sm:grid-cols-2 gap-3">
+                          {mod.topics.map((topic, j) => (
+                            <div key={j} className="flex items-center gap-3 p-3 rounded-xl bg-black/[0.02] border border-black/5">
+                              <div className="w-1.5 h-1.5 rounded-full bg-black" />
+                              <span className="text-xs sm:text-sm text-black font-medium">{topic}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="md:col-span-4 bg-black/[0.03] rounded-2xl p-6 flex flex-col justify-center items-center text-center border border-black/10">
+                        <Rocket className="w-8 h-8 text-black mb-3" />
+                        <div className="text-[10px] font-bold text-black/60 uppercase tracking-widest mb-1">Module Style</div>
+                        <div className="text-lg font-normal font-instrument text-black italic">Project-First</div>
+                      </div>
                     </div>
                   </AccordionContent>
                 </AccordionItem>
@@ -248,54 +250,57 @@ export function About() {
         </div>
 
         {/* Detailed Breakdown */}
-        <div className="bg-zinc-900 rounded-[3rem] p-8 md:p-16 text-white relative overflow-hidden">
-          <div className="absolute inset-0 bg-grid-dashed opacity-10 pointer-events-none" />
-          
+        <div className="bg-black rounded-[3rem] p-8 md:p-16 text-white relative overflow-hidden shadow-2xl">
           <div className="max-w-3xl relative z-10">
-            <h2 className="text-3xl md:text-5xl font-bold mb-8 italic">Learn to design like a developer, not just code.</h2>
+            <h2 className="text-3xl md:text-5xl font-normal font-instrument mb-8 text-white italic">
+              Learn to design like a developer, not just code.
+            </h2>
             <div className="grid sm:grid-cols-2 gap-12">
-               <div className="space-y-6">
-                  <h4 className="flex items-center gap-3 text-emerald-400 font-bold uppercase tracking-wider text-sm">
-                    <Zap className="w-4 h-4" /> AI Tools Mastery
-                  </h4>
-                  <p className="text-zinc-400 text-sm leading-relaxed">
-                    Boost productivity 10x using ChatGPT for debugging, Claude for deep reasoning, and Antigravity for blazing fast development workflows.
-                  </p>
-                  <ul className="space-y-3">
-                    {["Prompt Engineering", "AI UI Generation", "Logic Optimization"].map((item, i) => (
-                      <li key={i} className="flex items-center gap-3 text-zinc-300 text-sm">
-                        <CheckCircle2 className="w-4 h-4 text-emerald-500" /> {item}
-                      </li>
-                    ))}
-                  </ul>
-               </div>
+              <div className="space-y-6">
+                <h4 className="flex items-center gap-3 text-white/80 font-semibold uppercase tracking-widest text-xs">
+                  <Zap className="w-4 h-4 text-white" /> AI Tools Mastery
+                </h4>
+                <p className="text-white/70 text-sm font-medium leading-relaxed">
+                  Boost productivity 10x using ChatGPT for debugging, Claude for deep reasoning, and Antigravity for blazing fast development workflows.
+                </p>
+                <ul className="space-y-3">
+                  {["Prompt Engineering", "AI UI Generation", "Logic Optimization"].map((item, i) => (
+                    <li key={i} className="flex items-center gap-3 text-white/90 text-sm font-medium">
+                      <CheckCircle2 className="w-4 h-4 text-white" /> {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
 
-               <div className="space-y-6">
-                  <h4 className="flex items-center gap-3 text-orange-400 font-bold uppercase tracking-wider text-sm">
-                    <Briefcase className="w-4 h-4" /> Professional Skills
-                  </h4>
-                  <p className="text-zinc-400 text-sm leading-relaxed">
-                    We don't just teach code. We build careers with Git/GitHub mastery, LinkedIn optimization, and personal branding for developers.
-                  </p>
-                  <ul className="space-y-3">
-                    {["Open Source Hackathons", "ATS Resume Building", "Interview Readiness"].map((item, i) => (
-                      <li key={i} className="flex items-center gap-3 text-zinc-300 text-sm">
-                        <CheckCircle2 className="w-4 h-4 text-orange-500" /> {item}
-                      </li>
-                    ))}
-                  </ul>
-               </div>
+              <div className="space-y-6">
+                <h4 className="flex items-center gap-3 text-white/80 font-semibold uppercase tracking-widest text-xs">
+                  <Briefcase className="w-4 h-4 text-white" /> Professional Skills
+                </h4>
+                <p className="text-white/70 text-sm font-medium leading-relaxed">
+                  We don't just teach code. We build careers with Git/GitHub mastery, LinkedIn optimization, and personal branding for developers.
+                </p>
+                <ul className="space-y-3">
+                  {["Open Source Hackathons", "ATS Resume Building", "Interview Readiness"].map((item, i) => (
+                    <li key={i} className="flex items-center gap-3 text-white/90 text-sm font-medium">
+                      <CheckCircle2 className="w-4 h-4 text-white" /> {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
           </div>
-          
+
           {/* Action Button */}
           <div className="mt-16 flex justify-center">
-             <Link to="/#pricing" className="px-10 py-4 rounded-full bg-white text-zinc-900 font-bold hover:bg-zinc-100 transition-colors shadow-2xl">
-                Ready to Join?
-             </Link>
+            <Link to="/login" className="px-10 py-4.5 rounded-full bg-white text-black font-medium hover:bg-zinc-200 hover:scale-[1.03] transition-all shadow-xl inline-block">
+              Ready to Join?
+            </Link>
           </div>
         </div>
       </div>
+
+      {/* Footer */}
+      {/* <Footer /> */}
     </div>
   );
 }

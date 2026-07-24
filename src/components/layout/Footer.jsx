@@ -1,26 +1,23 @@
 import React from 'react';
-import logoImage from '@/assets/Logo_Bootcamp.png';
+import { Link } from 'react-router-dom';
 
 export function Footer() {
   return (
-    <footer className="bg-zinc-50 border-t border-zinc-200 py-12">
-      <div className="max-w-6xl mx-auto px-6 text-center">
+    <footer className="bg-white border-t border-black/10 py-16 font-inter text-black">
+      <div className="max-w-7xl mx-auto px-6 text-center">
         <div className="flex flex-col items-center gap-6">
-          <div className="flex items-center gap-2">
-            <img 
-              src={logoImage} 
-              alt="Logo" 
-              className="h-6 object-contain" 
-            />
-            <span className="text-xl font-semibold tracking-tight text-zinc-900">StackSprint</span>
-          </div>
-          <p className="text-sm text-zinc-500 max-w-sm">The modern, gamified education platform for ambitious developers looking to level up their careers.</p>
+          <Link to="/" className="text-3xl tracking-tight font-instrument text-black font-normal">
+            StackSprint<sup className="text-xs font-sans align-top leading-none font-normal">®</sup>
+          </Link>
+          <p className="text-sm text-black/70 font-medium max-w-sm leading-relaxed">
+            The modern, gamified education platform for ambitious developers looking to level up their careers.
+          </p>
           
-          <div className="pt-8 border-t border-zinc-100 w-full flex flex-col md:flex-row items-center justify-between gap-4">
-            <p className="text-sm text-zinc-500">© 2026 StackSprint. All rights reserved.</p>
-            <div className="flex items-center gap-4">
-               <a href="#" className="text-xs text-zinc-400 hover:text-zinc-600">Privacy</a>
-               <a href="#" className="text-xs text-zinc-400 hover:text-zinc-600">Terms</a>
+          <div className="pt-10 border-t border-black/10 w-full flex flex-col md:flex-row items-center justify-between gap-4">
+            <p className="text-xs text-black/60 font-medium">© 2026 StackSprint. All rights reserved.</p>
+            <div className="flex items-center gap-6">
+              <a href="#" className="text-xs text-black/60 hover:text-black font-medium transition-colors">Privacy Policy</a>
+              <a href="#" className="text-xs text-black/60 hover:text-black font-medium transition-colors">Terms of Service</a>
             </div>
           </div>
         </div>
