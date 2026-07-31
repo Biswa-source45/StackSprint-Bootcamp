@@ -178,6 +178,13 @@ const CURRICULUM = [
         description: 'React components, props, state management, event handling, and conditional rendering.',
         duration: 'Session Recording',
         embedUrl: 'https://drive.google.com/file/d/1-5vK0W4YGzPmhXtVkl1KYbHmuDLyIQXQ/preview'
+      },
+      {
+        id: 'react-lec-3',
+        title: 'React — Lecture 3',
+        description: 'React state management: deep dive into useState, useEffect, side effects, and state concepts.',
+        duration: 'Session Recording',
+        embedUrl: 'https://drive.google.com/file/d/1NPsRQN6SamsXvrNGaXNlEHgQzO2uccUz/preview'
       }
     ]
   }
