@@ -206,6 +206,13 @@ const CURRICULUM = [
         description: 'React routing, navigation with React Router, dynamic routes, and single-page app architecture.',
         duration: 'Session Recording',
         embedUrl: 'https://drive.google.com/file/d/18mh5GJwyCxJOv218AInXrmzN_inkBFfL/preview'
+      },
+      {
+        id: 'react-lec-7',
+        title: 'React — Lecture 7',
+        description: 'Advanced React concepts: state, hooks, project building, and end-to-end frontend integration.',
+        duration: 'Session Recording',
+        embedUrl: 'https://drive.google.com/file/d/1r7b_mK0FfTFaZVk2RhcXb3t2rxiT6Rsf/preview'
       }
     ]
   }
