@@ -185,6 +185,27 @@ const CURRICULUM = [
         description: 'React state management: deep dive into useState, useEffect, side effects, and state concepts.',
         duration: 'Session Recording',
         embedUrl: 'https://drive.google.com/file/d/1NPsRQN6SamsXvrNGaXNlEHgQzO2uccUz/preview'
+      },
+      {
+        id: 'react-lec-4',
+        title: 'React — Lecture 4',
+        description: 'React state & side effects: custom hooks, complex component architecture, and advanced pattern implementations.',
+        duration: 'Session Recording',
+        embedUrl: 'https://drive.google.com/file/d/15_PyWRCsvfgVpZB08RK-jbGWU7xy3CsZ/preview'
+      },
+      {
+        id: 'react-lec-5',
+        title: 'React — Lecture 5',
+        description: 'React Context API, global state management, performance optimization, and custom hooks.',
+        duration: 'Session Recording',
+        embedUrl: 'https://drive.google.com/file/d/1db29_IzgLOUzS8FsfT32_NHn4HqKn_iM/preview'
+      },
+      {
+        id: 'react-lec-6',
+        title: 'React — Lecture 6',
+        description: 'React routing, navigation with React Router, dynamic routes, and single-page app architecture.',
+        duration: 'Session Recording',
+        embedUrl: 'https://drive.google.com/file/d/18mh5GJwyCxJOv218AInXrmzN_inkBFfL/preview'
       }
     ]
   }
