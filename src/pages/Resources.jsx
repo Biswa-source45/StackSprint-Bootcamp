@@ -12,7 +12,12 @@ import {
   CheckCircle2,
   Palette,
   Code,
-  Atom
+  Atom,
+  Server,
+  FolderCode,
+  ExternalLink,
+  Download,
+  Sparkles
 } from 'lucide-react';
 
 
@@ -213,16 +218,39 @@ const CURRICULUM = [
         description: 'Advanced React concepts: state, hooks, project building, and end-to-end frontend integration.',
         duration: 'Session Recording',
         embedUrl: 'https://drive.google.com/file/d/1r7b_mK0FfTFaZVk2RhcXb3t2rxiT6Rsf/preview'
+      },
+      {
+        id: 'react-proj-gh-finder',
+        title: 'React Project — GitHub User Finder',
+        description: 'Hands-on React project session & codebase: GitHub REST API integration, profile searching, components & state management.',
+        duration: 'Project Recording',
+        embedUrl: 'https://drive.google.com/file/d/1-XH2fc98tnr2GAEdHNeK9nqWV7xL16om/preview',
+        driveUrl: 'https://drive.google.com/file/d/1-XH2fc98tnr2GAEdHNeK9nqWV7xL16om/view?usp=drive_link'
+      }
+    ]
+  },
+  {
+    id: 'express',
+    topic: 'Express.js & Node.js',
+    icon: Server,
+    color: 'from-emerald-600 to-teal-600',
+    bgLight: 'bg-emerald-50',
+    textColor: 'text-emerald-700',
+    borderColor: 'border-emerald-200',
+    lectures: [
+      {
+        id: 'express-lec-1',
+        title: 'Express.js Backend & API Setup',
+        description: 'Comprehensive Express.js backend masterclass & backend project walkthrough: REST API architecture, server initialization, middleware, and route configuration.',
+        duration: 'Project Recording',
+        embedUrl: 'https://drive.google.com/file/d/1NlrWpzJEsijXslUMRJ1dfKknkpTBEUXG/preview',
+        driveUrl: 'https://drive.google.com/file/d/1NlrWpzJEsijXslUMRJ1dfKknkpTBEUXG/view?usp=drive_link'
       }
     ]
   }
 ];
 
 // ─── Video Player ──────────────────────────────────────────────────────────────
-// Pure Google Drive embed — no custom controls or overlays on top of the player.
-// Only additions: loading spinner while iframe initialises, and a centred Play
-// button that disappears the moment the user clicks it (revealing the full
-// native GDrive chrome with seek, volume, CC, HD, fullscreen, etc.)
 function VideoPlayer({ embedUrl, title }) {
   const [iframeLoaded, setIframeLoaded] = useState(false);
   const [hasStarted, setHasStarted] = useState(false);
@@ -232,7 +260,7 @@ function VideoPlayer({ embedUrl, title }) {
       className="relative w-full bg-zinc-950 rounded-xl overflow-hidden shadow-2xl shadow-zinc-900/30"
       style={{ aspectRatio: '16/9' }}
     >
-      {/* Loading spinner – shown until iframe fires onLoad */}
+      {/* Loading spinner */}
       {!iframeLoaded && (
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 z-30 bg-zinc-950">
           <Loader2 className="w-8 h-8 text-emerald-500 animate-spin" />
@@ -242,7 +270,7 @@ function VideoPlayer({ embedUrl, title }) {
         </div>
       )}
 
-      {/* Centred Play button – visible after load, gone after first click */}
+      {/* Centred Play button */}
       {iframeLoaded && !hasStarted && (
         <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/25 backdrop-blur-[1.5px]">
           <button
@@ -250,13 +278,12 @@ function VideoPlayer({ embedUrl, title }) {
             className="group flex items-center justify-center w-20 h-20 rounded-full bg-white/95 shadow-2xl shadow-black/50 hover:scale-110 active:scale-95 transition-all duration-200 focus:outline-none focus-visible:ring-4 focus-visible:ring-white/50"
             aria-label={`Play ${title}`}
           >
-            {/* CSS triangle – cleaner than an SVG for this size */}
             <div className="w-0 h-0 ml-2 border-t-[13px] border-t-transparent border-l-[22px] border-l-zinc-900 border-b-[13px] border-b-transparent group-hover:border-l-emerald-600 transition-colors duration-200" />
           </button>
         </div>
       )}
 
-      {/* Google Drive iframe – the native player does everything else */}
+      {/* Google Drive iframe */}
       <iframe
         src={embedUrl}
         title={title}
@@ -314,17 +341,42 @@ function LectureCard({ lecture, index, topicColor }) {
       {open && (
         <div className="border-t border-zinc-100 bg-zinc-950/5 px-4 pb-4 pt-3 space-y-3">
           {/* Description */}
-          <p className="text-xs text-zinc-500 leading-relaxed px-1">{lecture.description}</p>
+          <div className="flex items-center justify-between gap-2 flex-wrap px-1">
+            <p className="text-xs text-zinc-500 leading-relaxed flex-1">{lecture.description}</p>
+            {lecture.driveUrl && (
+              <a
+                href={lecture.driveUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-semibold rounded-lg transition-colors shadow-sm"
+              >
+                <ExternalLink className="w-3.5 h-3.5" />
+                Open Drive Link
+              </a>
+            )}
+          </div>
 
           {/* Player */}
           <VideoPlayer embedUrl={lecture.embedUrl} title={lecture.title} />
 
           {/* Player tip */}
-          <div className="flex items-center gap-1.5 pt-1 px-1">
-            <CheckCircle2 className="w-3 h-3 text-emerald-500 flex-shrink-0" />
-            <span className="text-[10px] text-zinc-400">
-              Use the native player controls for seeks, volume, CC, quality &amp; fullscreen.
-            </span>
+          <div className="flex items-center justify-between gap-2 pt-1 px-1">
+            <div className="flex items-center gap-1.5">
+              <CheckCircle2 className="w-3 h-3 text-emerald-500 flex-shrink-0" />
+              <span className="text-[10px] text-zinc-400">
+                Use the native player controls for seeks, volume, CC, quality &amp; fullscreen.
+              </span>
+            </div>
+            {lecture.driveUrl && (
+              <a
+                href={lecture.driveUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[10px] text-emerald-600 hover:underline font-medium flex items-center gap-1"
+              >
+                Direct Download / View <Download className="w-3 h-3" />
+              </a>
+            )}
           </div>
         </div>
       )}
@@ -433,6 +485,134 @@ function NotesTab() {
   );
 }
 
+// ─── Projects & Repos Data ───────────────────────────────────────────────────
+const PROJECTS_DATA = [
+  {
+    id: 'react-github-finder',
+    title: 'React Project — GitHub User Finder',
+    topic: 'React.js',
+    category: 'Frontend Project',
+    description: 'Complete hands-on React project for building a GitHub User Finder application. Features live GitHub API integration, component state, profile card rendering, dynamic repositories list, and modern responsive styling.',
+    tags: ['React.js', 'GitHub API', 'Component State', 'Tailwind CSS'],
+    embedUrl: 'https://drive.google.com/file/d/1-XH2fc98tnr2GAEdHNeK9nqWV7xL16om/preview',
+    driveUrl: 'https://drive.google.com/file/d/1-XH2fc98tnr2GAEdHNeK9nqWV7xL16om/view?usp=drive_link',
+    icon: Atom,
+    color: 'from-cyan-600 to-blue-600',
+    bgLight: 'bg-cyan-50',
+    textColor: 'text-cyan-700',
+    borderColor: 'border-cyan-200'
+  },
+  {
+    id: 'express-backend-api',
+    title: 'Express.js & Node.js Backend Masterclass',
+    topic: 'Express.js',
+    category: 'Backend Architecture',
+    description: 'Comprehensive Express.js backend project architecture covering Node.js server setup, RESTful API endpoint configuration, modular route controllers, middleware layers, and backend project structure.',
+    tags: ['Node.js', 'Express.js', 'REST API', 'Backend Architecture'],
+    embedUrl: 'https://drive.google.com/file/d/1NlrWpzJEsijXslUMRJ1dfKknkpTBEUXG/preview',
+    driveUrl: 'https://drive.google.com/file/d/1NlrWpzJEsijXslUMRJ1dfKknkpTBEUXG/view?usp=drive_link',
+    icon: Server,
+    color: 'from-emerald-600 to-teal-600',
+    bgLight: 'bg-emerald-50',
+    textColor: 'text-emerald-700',
+    borderColor: 'border-emerald-200'
+  }
+];
+
+// ─── Projects Tab ─────────────────────────────────────────────────────────────
+function ProjectsTab() {
+  const [activePreview, setActivePreview] = useState(null);
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center gap-2 px-4 py-3 bg-emerald-50 border border-emerald-100 rounded-xl">
+        <Sparkles className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+        <p className="text-xs text-emerald-800">
+          Explore complete project repositories &amp; recording walkthroughs. Click <strong>Open Drive Project</strong> to access source files directly.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        {PROJECTS_DATA.map((project) => {
+          const Icon = project.icon;
+          const isPreviewing = activePreview === project.id;
+
+          return (
+            <div
+              key={project.id}
+              className="bg-white border border-zinc-200/80 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
+            >
+              <div>
+                {/* Header */}
+                <div className="flex items-center justify-between gap-3 mb-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className={`p-2.5 bg-gradient-to-br ${project.color} rounded-xl shadow-sm`}>
+                      <Icon className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <span className={`text-[10px] font-bold uppercase tracking-wider ${project.textColor}`}>
+                        {project.category}
+                      </span>
+                      <h3 className="text-sm font-extrabold text-zinc-900 leading-snug">
+                        {project.title}
+                      </h3>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Description */}
+                <p className="text-xs text-zinc-500 leading-relaxed mb-4">
+                  {project.description}
+                </p>
+
+                {/* Tags */}
+                <div className="flex flex-wrap gap-1.5 mb-4">
+                  {project.tags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="text-[10px] font-semibold text-zinc-600 bg-zinc-100 px-2.5 py-0.5 rounded-md"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+
+                {/* Expandable Player Preview */}
+                {isPreviewing && (
+                  <div className="mb-4 rounded-xl overflow-hidden border border-zinc-200">
+                    <VideoPlayer embedUrl={project.embedUrl} title={project.title} />
+                  </div>
+                )}
+              </div>
+
+              {/* Actions */}
+              <div className="flex items-center gap-2 pt-3 border-t border-zinc-100 mt-2">
+                <a
+                  href={project.driveUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-colors shadow-sm"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  Open Drive Project
+                </a>
+
+                <button
+                  onClick={() => setActivePreview(isPreviewing ? null : project.id)}
+                  className="inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 rounded-xl text-xs font-bold transition-colors"
+                >
+                  <MonitorPlay className="w-3.5 h-3.5 text-zinc-500" />
+                  {isPreviewing ? 'Hide Preview' : 'Watch Session'}
+                </button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 // ─── Main Component ───────────────────────────────────────────────────────────
 export function Resources() {
   const [activeTab, setActiveTab] = useState('videos');
@@ -460,15 +640,16 @@ export function Resources() {
             Learning Resources
           </h1>
           <p className="text-zinc-500 text-sm mt-2 max-w-xl">
-            Access all class recordings and study materials. Videos are organized by topic and session.
+            Access all class recordings, project source code, and study materials. Organized by module and session.
           </p>
         </div>
 
         {/* Tab switcher */}
-        <div className="flex bg-white border border-zinc-200 rounded-xl p-1 shadow-sm mb-6 w-fit">
+        <div className="flex bg-white border border-zinc-200 rounded-xl p-1 shadow-sm mb-6 w-fit flex-wrap gap-1">
           {[
             { key: 'videos', label: 'Video Lectures', Icon: MonitorPlay },
-            { key: 'notes', label: 'Notes & Docs', Icon: FileText }
+            { key: 'notes', label: 'Notes & Docs', Icon: FileText },
+            { key: 'projects', label: 'Projects & Code', Icon: FolderCode }
           ].map(({ key, label, Icon }) => (
             <button
               key={key}
@@ -496,13 +677,15 @@ export function Resources() {
             <div className="mt-4 flex items-center gap-2 px-4 py-3 bg-amber-50 border border-amber-100 rounded-xl">
               <span className="text-[10px] font-bold text-amber-600 uppercase tracking-widest">More topics</span>
               <p className="text-xs text-amber-700">
-                More module recordings (HTML, CSS, JS, React, Node.js…) will appear here as classes are completed.
+                More module recordings (HTML, CSS, JS, React, Express.js, Gen-AI…) will appear here as classes are completed.
               </p>
             </div>
           </div>
         )}
 
         {activeTab === 'notes' && <NotesTab />}
+
+        {activeTab === 'projects' && <ProjectsTab />}
       </div>
     </div>
   );
