@@ -240,11 +240,19 @@ const CURRICULUM = [
     lectures: [
       {
         id: 'express-lec-1',
-        title: 'Express.js Backend & API Setup',
-        description: 'Comprehensive Express.js backend masterclass & backend project walkthrough: REST API architecture, server initialization, middleware, and route configuration.',
-        duration: 'Project Recording',
+        title: 'Express.js — Lecture 1: Backend & API Setup',
+        description: 'Comprehensive Express.js backend masterclass & backend project walkthrough: REST API architecture, server initialization, and route configuration.',
+        duration: 'Session Recording',
         embedUrl: 'https://drive.google.com/file/d/1NlrWpzJEsijXslUMRJ1dfKknkpTBEUXG/preview',
         driveUrl: 'https://drive.google.com/file/d/1NlrWpzJEsijXslUMRJ1dfKknkpTBEUXG/view?usp=drive_link'
+      },
+      {
+        id: 'express-lec-2',
+        title: 'Express.js — Lecture 2: Middleware & Backend Concepts',
+        description: 'Deep dive into Express.js Middleware: custom middleware functions, request & response processing, next() control flow, error handling, and backend architecture.',
+        duration: 'Session Recording',
+        embedUrl: 'https://drive.google.com/file/d/1iJ8VqQNL5zmAeeU_USANCU3kesu9pcPn/preview',
+        driveUrl: 'https://drive.google.com/file/d/1iJ8VqQNL5zmAeeU_USANCU3kesu9pcPn/view?usp=drive_link'
       }
     ]
   }
