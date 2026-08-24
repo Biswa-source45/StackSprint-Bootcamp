@@ -17,7 +17,8 @@ import {
   FolderCode,
   ExternalLink,
   Download,
-  Sparkles
+  Sparkles,
+  Database
 } from 'lucide-react';
 
 
@@ -220,12 +221,20 @@ const CURRICULUM = [
         embedUrl: 'https://drive.google.com/file/d/1r7b_mK0FfTFaZVk2RhcXb3t2rxiT6Rsf/preview'
       },
       {
-        id: 'react-proj-gh-finder',
-        title: 'React Project — GitHub User Finder',
+        id: 'react-proj-gh-finder-1',
+        title: 'React Project — GitHub User Finder (Part 1)',
         description: 'Hands-on React project session & codebase: GitHub REST API integration, profile searching, components & state management.',
         duration: 'Project Recording',
         embedUrl: 'https://drive.google.com/file/d/1-XH2fc98tnr2GAEdHNeK9nqWV7xL16om/preview',
         driveUrl: 'https://drive.google.com/file/d/1-XH2fc98tnr2GAEdHNeK9nqWV7xL16om/view?usp=drive_link'
+      },
+      {
+        id: 'react-proj-gh-finder-2',
+        title: 'React Project — GitHub User Finder (Part 2)',
+        description: 'Hands-on React project session (Part 2): Advanced profile rendering, repositories integration, state optimization, and UI polish.',
+        duration: 'Project Recording',
+        embedUrl: 'https://drive.google.com/file/d/1W9-MNCvR7-GAIVgzbk01Q78LybbG2f4x/preview',
+        driveUrl: 'https://drive.google.com/file/d/1W9-MNCvR7-GAIVgzbk01Q78LybbG2f4x/view?usp=drive_link'
       }
     ]
   },
@@ -253,6 +262,25 @@ const CURRICULUM = [
         duration: 'Session Recording',
         embedUrl: 'https://drive.google.com/file/d/1iJ8VqQNL5zmAeeU_USANCU3kesu9pcPn/preview',
         driveUrl: 'https://drive.google.com/file/d/1iJ8VqQNL5zmAeeU_USANCU3kesu9pcPn/view?usp=drive_link'
+      }
+    ]
+  },
+  {
+    id: 'mongodb',
+    topic: 'MongoDB & Schema Design',
+    icon: Database,
+    color: 'from-emerald-600 to-green-700',
+    bgLight: 'bg-emerald-50',
+    textColor: 'text-emerald-800',
+    borderColor: 'border-emerald-200',
+    lectures: [
+      {
+        id: 'mongo-lec-1',
+        title: 'MongoDB — Lecture 1: Introduction to MongoDB & Schema Design',
+        description: 'Introduction to NoSQL databases, MongoDB architecture, document data models, BSON/JSON, collections, and schema design best practices.',
+        duration: 'Session Recording',
+        embedUrl: 'https://drive.google.com/file/d/1TOgkyCMLyzbFXGMnz73hlcsAcE9vG7Sg/preview',
+        driveUrl: 'https://drive.google.com/file/d/1TOgkyCMLyzbFXGMnz73hlcsAcE9vG7Sg/view?usp=drive_link'
       }
     ]
   }
@@ -496,14 +524,29 @@ function NotesTab() {
 // ─── Projects & Repos Data ───────────────────────────────────────────────────
 const PROJECTS_DATA = [
   {
-    id: 'react-github-finder',
-    title: 'React Project — GitHub User Finder',
+    id: 'react-github-finder-1',
+    title: 'React Project — GitHub User Finder (Part 1)',
     topic: 'React.js',
     category: 'Frontend Project',
-    description: 'Complete hands-on React project for building a GitHub User Finder application. Features live GitHub API integration, component state, profile card rendering, dynamic repositories list, and modern responsive styling.',
+    description: 'Complete hands-on React project for building a GitHub User Finder application (Part 1). Features live GitHub API integration, component state, profile card rendering, dynamic repositories list, and modern responsive styling.',
     tags: ['React.js', 'GitHub API', 'Component State', 'Tailwind CSS'],
     embedUrl: 'https://drive.google.com/file/d/1-XH2fc98tnr2GAEdHNeK9nqWV7xL16om/preview',
     driveUrl: 'https://drive.google.com/file/d/1-XH2fc98tnr2GAEdHNeK9nqWV7xL16om/view?usp=drive_link',
+    icon: Atom,
+    color: 'from-cyan-600 to-blue-600',
+    bgLight: 'bg-cyan-50',
+    textColor: 'text-cyan-700',
+    borderColor: 'border-cyan-200'
+  },
+  {
+    id: 'react-github-finder-2',
+    title: 'React Project — GitHub User Finder (Part 2)',
+    topic: 'React.js',
+    category: 'Frontend Project',
+    description: 'Hands-on React project implementation (Part 2). Covers dynamic repositories fetching, state optimization, search filtering, error handling, and enhanced UI polish.',
+    tags: ['React.js', 'GitHub API', 'Async Fetch', 'UI Polish'],
+    embedUrl: 'https://drive.google.com/file/d/1W9-MNCvR7-GAIVgzbk01Q78LybbG2f4x/preview',
+    driveUrl: 'https://drive.google.com/file/d/1W9-MNCvR7-GAIVgzbk01Q78LybbG2f4x/view?usp=drive_link',
     icon: Atom,
     color: 'from-cyan-600 to-blue-600',
     bgLight: 'bg-cyan-50',
