@@ -18,7 +18,10 @@ import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
+import { Textarea } from '../components/ui/textarea';
 import { toast } from 'sonner';
+import { parseDriveLink } from '../lib/driveLink';
+import { flattenLegacyResources } from '../lib/legacyResourcesSeed';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -47,7 +50,16 @@ import {
   ArrowRight,
   Home,
   LayoutGrid,
-  Download
+  Download,
+  FolderKanban,
+  MonitorPlay,
+  FileText,
+  FolderCode,
+  UploadCloud,
+  Link2,
+  MessageCircleQuestion,
+  Clock,
+  Phone
 } from 'lucide-react';
 
 // ── Secondary Firebase app (for creating students without logging out admin) ──
@@ -78,7 +90,24 @@ const emptyStudentForm = {
 const TABS = [
   { key: 'students', label: 'Students', Icon: Users },
   { key: 'addStudent', label: 'Enroll', Icon: UserPlus },
-  { key: 'courses', label: 'Courses', Icon: BookOpen }
+  { key: 'courses', label: 'Courses', Icon: BookOpen },
+  { key: 'resources', label: 'Resources', Icon: FolderKanban },
+  { key: 'queries', label: 'Student Queries', Icon: MessageCircleQuestion }
+];
+
+const emptyResourceForm = { kind: 'video', topic: '', title: '', description: '', category: '', driveShareLink: '', tagsText: '' };
+
+const RESOURCE_KIND_TABS = [
+  { key: 'video', label: 'Video Lectures', Icon: MonitorPlay },
+  { key: 'note', label: 'Notes & Docs', Icon: FileText },
+  { key: 'project', label: 'Projects & Code', Icon: FolderCode }
+];
+
+const DOUBT_STATUS_FILTERS = [
+  { key: 'all', label: 'All' },
+  { key: 'pending', label: 'Pending' },
+  { key: 'in_progress', label: 'In Progress' },
+  { key: 'resolved', label: 'Resolved' }
 ];
 
 // ── Stat mini-card ─────────────────────────────────────────────────────────
@@ -109,6 +138,22 @@ function PayBadge({ status }) {
   return <Badge className="bg-red-100 text-red-700 border-none text-[10px] px-2 py-0.5">Unpaid</Badge>;
 }
 
+// ── Doubt status badge ─────────────────────────────────────────────────────
+function DoubtStatusBadge({ status, studentConfirmed }) {
+  if (status === 'resolved') {
+    return studentConfirmed ? (
+      <Badge className="bg-emerald-100 text-emerald-700 border-none text-[10px] px-2 py-0.5">Resolved</Badge>
+    ) : (
+      <Badge className="bg-blue-100 text-blue-700 border-none text-[10px] px-2 py-0.5">
+        Resolved — awaiting student confirmation
+      </Badge>
+    );
+  }
+  if (status === 'in_progress')
+    return <Badge className="bg-amber-100 text-amber-700 border-none text-[10px] px-2 py-0.5">In Progress</Badge>;
+  return <Badge className="bg-zinc-100 text-zinc-600 border-none text-[10px] px-2 py-0.5">Pending</Badge>;
+}
+
 // ── Main Component ─────────────────────────────────────────────────────────
 export default function AdminDashboard() {
   const { logout } = useAuth();
@@ -128,6 +173,20 @@ export default function AdminDashboard() {
   const [courseToDelete, setCourseToDelete] = useState(null);
   const [studentToLogout, setStudentToLogout] = useState(null);
 
+  // ── Resources tab state ──────────────────────────────────────────────────
+  const [resources, setResources] = useState([]);
+  const [resourceKind, setResourceKind] = useState('video');
+  const [resourceForm, setResourceForm] = useState(emptyResourceForm);
+  const [editingResourceId, setEditingResourceId] = useState(null);
+  const [savingResource, setSavingResource] = useState(false);
+  const [resourceToDelete, setResourceToDelete] = useState(null);
+  const [importingLegacy, setImportingLegacy] = useState(false);
+
+  // ── Student Queries (doubts) tab state ───────────────────────────────────
+  const [doubts, setDoubts] = useState([]);
+  const [doubtStatusFilter, setDoubtStatusFilter] = useState('all');
+  const [doubtActionLoading, setDoubtActionLoading] = useState(false);
+
   // ── Real-time listeners ──────────────────────────────────────────────────
   useEffect(() => {
     const unsubCourses = onSnapshot(
@@ -145,7 +204,17 @@ export default function AdminDashboard() {
         ),
       (err) => toast.error('Cannot load students: ' + err.message, { id: 'students-err' })
     );
-    return () => { unsubCourses(); unsubStudents(); };
+    const unsubResources = onSnapshot(
+      collection(db, 'resources'),
+      (snap) => setResources(snap.docs.map((d) => ({ id: d.id, ...d.data() }))),
+      (err) => toast.error('Cannot load resources: ' + err.message, { id: 'resources-err' })
+    );
+    const unsubDoubts = onSnapshot(
+      collection(db, 'doubts'),
+      (snap) => setDoubts(snap.docs.map((d) => ({ id: d.id, ...d.data() }))),
+      (err) => toast.error('Cannot load student queries: ' + err.message, { id: 'doubts-err' })
+    );
+    return () => { unsubCourses(); unsubStudents(); unsubResources(); unsubDoubts(); };
   }, []);
 
   // ── Course handlers ──────────────────────────────────────────────────────
@@ -287,6 +356,183 @@ export default function AdminDashboard() {
     setEditingStudentId(null);
     setStudentForm(emptyStudentForm);
     setActiveTab('students');
+  };
+
+  // ── Resource handlers ────────────────────────────────────────────────────
+  const resourcesOfKind = resources.filter((r) => r.kind === resourceKind);
+
+  const handleResourceFormChange = (e) => {
+    const { name, value } = e.target;
+    setResourceForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSaveResource = async (e) => {
+    e.preventDefault();
+    setSavingResource(true);
+    try {
+      let embedUrl = '';
+      let driveUrl = '';
+      if (resourceForm.kind === 'note') {
+        // Notes just link out — no iframe embed needed, but still normalize via the
+        // Drive parser when the link looks like a Drive link so "Open" always works.
+        try {
+          ({ driveUrl } = parseDriveLink(resourceForm.driveShareLink));
+        } catch {
+          driveUrl = resourceForm.driveShareLink.trim();
+        }
+      } else {
+        const parsed = parseDriveLink(resourceForm.driveShareLink);
+        embedUrl = parsed.embedUrl;
+        driveUrl = parsed.driveUrl;
+      }
+
+      const data = {
+        kind: resourceForm.kind,
+        topic: resourceForm.topic.trim(),
+        title: resourceForm.title.trim(),
+        description: resourceForm.description.trim(),
+        category: resourceForm.category.trim(),
+        driveShareLink: resourceForm.driveShareLink.trim(),
+        embedUrl,
+        driveUrl,
+        updatedAt: new Date().toISOString()
+      };
+      if (resourceForm.kind === 'project') {
+        data.tags = resourceForm.tagsText
+          .split(',')
+          .map((t) => t.trim())
+          .filter(Boolean);
+      }
+
+      if (editingResourceId) {
+        await updateDoc(doc(db, 'resources', editingResourceId), data);
+        toast.success('Resource updated!');
+      } else {
+        data.createdAt = new Date().toISOString();
+        await addDoc(collection(db, 'resources'), data);
+        toast.success('Resource added!');
+      }
+      setResourceForm({ ...emptyResourceForm, kind: resourceForm.kind });
+      setEditingResourceId(null);
+    } catch (err) {
+      toast.error(err.message);
+    } finally {
+      setSavingResource(false);
+    }
+  };
+
+  const editResource = (r) => {
+    setEditingResourceId(r.id);
+    setResourceForm({
+      kind: r.kind,
+      topic: r.topic || '',
+      title: r.title || '',
+      description: r.description || '',
+      category: r.category || '',
+      driveShareLink: r.driveShareLink || r.driveUrl || '',
+      tagsText: Array.isArray(r.tags) ? r.tags.join(', ') : ''
+    });
+    setResourceKind(r.kind);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const cancelEditResource = () => {
+    setEditingResourceId(null);
+    setResourceForm({ ...emptyResourceForm, kind: resourceKind });
+  };
+
+  const confirmDeleteResource = async () => {
+    if (!resourceToDelete) return;
+    try {
+      await deleteDoc(doc(db, 'resources', resourceToDelete));
+      toast.success('Resource deleted.');
+    } catch (err) { toast.error(err.message); }
+    setResourceToDelete(null);
+  };
+
+  const handleImportLegacyCurriculum = async () => {
+    setImportingLegacy(true);
+    try {
+      const items = flattenLegacyResources();
+      const now = new Date().toISOString();
+      for (const item of items) {
+        await addDoc(collection(db, 'resources'), { ...item, createdAt: now, updatedAt: now });
+      }
+      toast.success(`Imported ${items.length} existing resources into the library.`);
+    } catch (err) {
+      toast.error('Import failed: ' + err.message);
+    } finally {
+      setImportingLegacy(false);
+    }
+  };
+
+  // ── Student query (doubt) handlers ───────────────────────────────────────
+  const filteredDoubts = doubts
+    .filter((d) => doubtStatusFilter === 'all' || d.status === doubtStatusFilter)
+    .sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+
+  const notifyStudent = async ({ uid, message, doubtId, email, subject }) => {
+    try {
+      await addDoc(collection(db, 'notifications'), {
+        uid,
+        message,
+        doubtId,
+        read: false,
+        createdAt: new Date().toISOString()
+      });
+    } catch (err) {
+      console.warn('notifyStudent: could not write in-app notification:', err.message);
+    }
+    try {
+      await fetch('/api/notify-doubt', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'status-update', to: email, subject, message })
+      });
+    } catch (err) {
+      console.warn('notifyStudent: email dispatch failed:', err.message);
+    }
+  };
+
+  const acceptDoubt = async (d) => {
+    setDoubtActionLoading(true);
+    try {
+      await updateDoc(doc(db, 'doubts', d.id), {
+        status: 'in_progress',
+        acceptedAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      });
+      await notifyStudent({
+        uid: d.studentId,
+        doubtId: d.id,
+        email: d.studentEmail,
+        subject: `Your doubt "${d.topic}" is now in progress`,
+        message: `Good news — an instructor has accepted your query about "${d.topic}" and is working on it.`
+      });
+      toast.success('Query accepted — student notified.');
+    } catch (err) { toast.error(err.message); }
+    finally { setDoubtActionLoading(false); }
+  };
+
+  const resolveDoubt = async (d) => {
+    setDoubtActionLoading(true);
+    try {
+      await updateDoc(doc(db, 'doubts', d.id), {
+        status: 'resolved',
+        studentConfirmed: false,
+        resolvedAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      });
+      await notifyStudent({
+        uid: d.studentId,
+        doubtId: d.id,
+        email: d.studentEmail,
+        subject: `Your doubt "${d.topic}" has been marked resolved`,
+        message: `Your query about "${d.topic}" has been marked resolved. Please confirm in your dashboard once you're satisfied, or reopen it if it isn't.`
+      });
+      toast.success('Marked resolved — student notified to confirm.');
+    } catch (err) { toast.error(err.message); }
+    finally { setDoubtActionLoading(false); }
   };
 
   // ── Revenue calculations ─────────────────────────────────────────────────
@@ -841,6 +1087,294 @@ export default function AdminDashboard() {
         </div>
       )}
 
+      {/* ════════════ RESOURCES TAB ════════════════════════════════════════ */}
+      {activeTab === 'resources' && (
+        <div className="space-y-5">
+          {/* Kind switcher */}
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <div className="flex bg-zinc-100 p-0.5 rounded-lg border border-zinc-200 w-fit">
+              {RESOURCE_KIND_TABS.map(({ key, label, Icon }) => (
+                <button
+                  key={key}
+                  onClick={() => {
+                    setResourceKind(key);
+                    setEditingResourceId(null);
+                    setResourceForm({ ...emptyResourceForm, kind: key });
+                  }}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
+                    resourceKind === key ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-500 hover:text-zinc-700'
+                  }`}
+                >
+                  <Icon className="w-3.5 h-3.5" />
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            {resources.length === 0 && (
+              <Button
+                size="sm"
+                onClick={handleImportLegacyCurriculum}
+                disabled={importingLegacy}
+                className="h-8 text-xs rounded-lg bg-zinc-900 hover:bg-zinc-800 text-white px-3"
+              >
+                {importingLegacy ? (
+                  <RefreshCcw className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+                ) : (
+                  <UploadCloud className="w-3.5 h-3.5 mr-1.5" />
+                )}
+                Import Existing Curriculum
+              </Button>
+            )}
+          </div>
+
+          <div className="grid lg:grid-cols-12 gap-5">
+            {/* Add / Edit Resource Form */}
+            <Card className="lg:col-span-4 border-zinc-200/70 shadow-sm h-fit">
+              <div className="px-5 py-4 border-b border-zinc-100 flex items-center justify-between">
+                <h2 className="text-sm font-bold text-zinc-900 flex items-center gap-2">
+                  <Plus className="w-4 h-4 text-emerald-600" />
+                  {editingResourceId ? 'Edit Resource' : 'Add Resource'}
+                </h2>
+                {editingResourceId && (
+                  <Button variant="ghost" size="sm" onClick={cancelEditResource} className="text-xs h-7 px-2.5 rounded-lg">
+                    Cancel
+                  </Button>
+                )}
+              </div>
+              <form onSubmit={handleSaveResource} className="p-5 space-y-4">
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-zinc-600">
+                    {resourceForm.kind === 'note' ? 'Note Title' : 'Title'}
+                  </Label>
+                  <Input
+                    name="title" required value={resourceForm.title}
+                    onChange={handleResourceFormChange}
+                    placeholder={resourceForm.kind === 'video' ? 'CSS — Lecture 9' : 'Title'}
+                    className="h-9 text-sm rounded-lg"
+                  />
+                </div>
+
+                {resourceForm.kind !== 'note' && (
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-semibold text-zinc-600">
+                      {resourceForm.kind === 'project' ? 'Project Topic' : 'Topic (groups lectures together)'}
+                    </Label>
+                    <Input
+                      name="topic" required value={resourceForm.topic}
+                      onChange={handleResourceFormChange}
+                      list="resource-topics"
+                      placeholder="CSS"
+                      className="h-9 text-sm rounded-lg"
+                    />
+                    <datalist id="resource-topics">
+                      {[...new Set(resources.filter((r) => r.kind === resourceForm.kind).map((r) => r.topic))].map((t) => (
+                        <option key={t} value={t} />
+                      ))}
+                    </datalist>
+                  </div>
+                )}
+
+                {resourceForm.kind === 'project' && (
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-semibold text-zinc-600">Category</Label>
+                    <Input
+                      name="category" value={resourceForm.category}
+                      onChange={handleResourceFormChange}
+                      placeholder="Frontend Project"
+                      className="h-9 text-sm rounded-lg"
+                    />
+                  </div>
+                )}
+
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-zinc-600">Description</Label>
+                  <Textarea
+                    name="description" required value={resourceForm.description}
+                    onChange={handleResourceFormChange}
+                    placeholder="What this covers…"
+                    className="text-sm min-h-[70px]"
+                  />
+                </div>
+
+                {resourceForm.kind === 'project' && (
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-semibold text-zinc-600">Tags (comma separated)</Label>
+                    <Input
+                      name="tagsText" value={resourceForm.tagsText}
+                      onChange={handleResourceFormChange}
+                      placeholder="React.js, GitHub API, Tailwind CSS"
+                      className="h-9 text-sm rounded-lg"
+                    />
+                  </div>
+                )}
+
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-zinc-600 flex items-center gap-1.5">
+                    <Link2 className="w-3.5 h-3.5" /> Google Drive Share Link
+                  </Label>
+                  <Input
+                    name="driveShareLink" required value={resourceForm.driveShareLink}
+                    onChange={handleResourceFormChange}
+                    placeholder="https://drive.google.com/file/d/…/view?usp=sharing"
+                    className="h-9 text-sm rounded-lg font-mono text-xs"
+                  />
+                  <p className="text-[10px] text-zinc-400">
+                    Paste the normal "Share" link — the preview / download links are generated automatically.
+                  </p>
+                </div>
+
+                <Button
+                  type="submit"
+                  disabled={savingResource}
+                  className="w-full h-10 bg-zinc-900 hover:bg-zinc-800 text-white rounded-lg font-semibold text-sm shadow-md transition-all mt-2"
+                >
+                  {savingResource ? (
+                    <RefreshCcw className="w-4 h-4 animate-spin mx-auto" />
+                  ) : editingResourceId ? (
+                    'Update Resource'
+                  ) : (
+                    'Add Resource'
+                  )}
+                </Button>
+              </form>
+            </Card>
+
+            {/* Resource List */}
+            <Card className="lg:col-span-8 border-zinc-200/70 shadow-sm">
+              <div className="px-5 py-4 border-b border-zinc-100">
+                <h2 className="text-sm font-bold text-zinc-900">
+                  {RESOURCE_KIND_TABS.find((t) => t.key === resourceKind)?.label}
+                  <span className="ml-2 text-xs font-normal text-zinc-400">({resourcesOfKind.length})</span>
+                </h2>
+              </div>
+              {resourcesOfKind.length === 0 ? (
+                <div className="py-16 text-center text-zinc-400 text-sm">
+                  No {RESOURCE_KIND_TABS.find((t) => t.key === resourceKind)?.label.toLowerCase()} yet. Add one, or import the existing curriculum above.
+                </div>
+              ) : (
+                <div className="divide-y divide-zinc-50">
+                  {resourcesOfKind.map((r) => (
+                    <div key={r.id} className="flex items-center gap-3 px-5 py-3.5 hover:bg-zinc-50/60 transition-colors">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-semibold text-zinc-900 text-sm">{r.title}</span>
+                          {r.topic && (
+                            <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">
+                              {r.topic}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-[11px] text-zinc-400 mt-0.5 truncate max-w-md">{r.description}</p>
+                      </div>
+                      <div className="flex items-center gap-1 flex-shrink-0">
+                        <a
+                          href={r.driveUrl} target="_blank" rel="noopener noreferrer"
+                          className="p-1.5 text-zinc-300 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all"
+                          title="Open in Drive"
+                        >
+                          <Link2 className="w-3.5 h-3.5" />
+                        </a>
+                        <button
+                          onClick={() => editResource(r)}
+                          className="p-1.5 text-zinc-300 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all"
+                          title="Edit resource"
+                        >
+                          <Edit className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => setResourceToDelete(r.id)}
+                          className="p-1.5 text-zinc-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                          title="Delete resource"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </Card>
+          </div>
+        </div>
+      )}
+
+      {/* ════════════ STUDENT QUERIES TAB ══════════════════════════════════ */}
+      {activeTab === 'queries' && (
+        <Card className="border-zinc-200/70 shadow-sm overflow-hidden">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 px-5 py-4 border-b border-zinc-100">
+            <h2 className="text-sm font-bold text-zinc-900">
+              Student Queries
+              <span className="ml-2 text-xs font-normal text-zinc-400">({filteredDoubts.length})</span>
+            </h2>
+            <div className="flex bg-zinc-100 p-0.5 rounded-lg border border-zinc-200">
+              {DOUBT_STATUS_FILTERS.map(({ key, label }) => (
+                <button
+                  key={key}
+                  onClick={() => setDoubtStatusFilter(key)}
+                  className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
+                    doubtStatusFilter === key ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-500 hover:text-zinc-700'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {filteredDoubts.length === 0 ? (
+            <div className="py-16 text-center text-zinc-400 text-sm">No queries in this filter.</div>
+          ) : (
+            <div className="divide-y divide-zinc-50">
+              {filteredDoubts.map((d) => (
+                <div key={d.id} className="px-5 py-4 hover:bg-zinc-50/60 transition-colors">
+                  <div className="flex items-start justify-between gap-3 flex-wrap">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 flex-wrap mb-1">
+                        <span className="font-semibold text-zinc-900 text-sm">{d.topic}</span>
+                        <DoubtStatusBadge status={d.status} studentConfirmed={d.studentConfirmed} />
+                      </div>
+                      <p className="text-xs text-zinc-500 leading-relaxed">{d.description}</p>
+                      <div className="flex items-center gap-4 mt-2 flex-wrap text-[11px] text-zinc-400">
+                        <span className="font-medium text-zinc-600">{d.studentName} · {d.studentEmail}</span>
+                        {d.preferredTime && (
+                          <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {d.preferredTime}</span>
+                        )}
+                        {d.contactNumber && (
+                          <span className="flex items-center gap-1"><Phone className="w-3 h-3" /> {d.contactNumber}</span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      {d.status === 'pending' && (
+                        <Button
+                          size="sm"
+                          onClick={() => acceptDoubt(d)}
+                          disabled={doubtActionLoading}
+                          className="h-8 text-xs rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white px-3"
+                        >
+                          Accept
+                        </Button>
+                      )}
+                      {d.status === 'in_progress' && (
+                        <Button
+                          size="sm"
+                          onClick={() => resolveDoubt(d)}
+                          disabled={doubtActionLoading}
+                          className="h-8 text-xs rounded-lg bg-zinc-900 hover:bg-zinc-800 text-white px-3"
+                        >
+                          Mark Resolved
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </Card>
+      )}
+
       {/* ════════════ CONFIRMATION DIALOGS ════════════════════════════════ */}
       {/* Delete Student */}
       <AlertDialog open={!!studentToDelete} onOpenChange={() => setStudentToDelete(null)}>
@@ -882,6 +1416,29 @@ export default function AdminDashboard() {
             <AlertDialogCancel className="rounded-lg text-xs h-8 px-3">Keep</AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmDeleteCourse}
+              className="bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs h-8 px-4"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete Resource */}
+      <AlertDialog open={!!resourceToDelete} onOpenChange={() => setResourceToDelete(null)}>
+        <AlertDialogContent className="rounded-2xl border-none shadow-2xl max-w-sm">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-base font-bold text-zinc-900">
+              Delete Resource?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-zinc-500 text-sm">
+              This removes it from the student-facing Resources page immediately.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="rounded-lg text-xs h-8 px-3">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDeleteResource}
               className="bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs h-8 px-4"
             >
               Delete

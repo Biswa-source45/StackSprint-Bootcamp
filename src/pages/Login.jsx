@@ -1,10 +1,21 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { getFriendlyAuthError } from '../lib/authErrors';
 import { useNavigate, Link } from 'react-router-dom';
 import { Card } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle
+} from '../components/ui/alert-dialog';
 import {
   Mail,
   Lock,
@@ -14,7 +25,8 @@ import {
   CheckCircle2,
   Eye,
   EyeOff,
-  Home
+  Home,
+  MonitorSmartphone
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -23,7 +35,9 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
+  const [conflictDevice, setConflictDevice] = useState(null); // deviceInfo of the other active session
+  const [takingOver, setTakingOver] = useState(false);
+  const { login, forceLogin } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -34,12 +48,30 @@ export default function Login() {
       toast.success('Welcome back! Redirecting to your dashboard...');
       navigate('/dashboard');
     } catch (err) {
-      toast.error('Authentication Failed', {
-        description: err.message,
-        duration: 8000
-      });
+      if (err.code === 'DEVICE_CONFLICT') {
+        setConflictDevice(err.deviceInfo || {});
+      } else {
+        toast.error('Authentication Failed', {
+          description: getFriendlyAuthError(err),
+          duration: 8000
+        });
+      }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleForceLogin = async () => {
+    setTakingOver(true);
+    try {
+      await forceLogin(email, password);
+      toast.success('Other device logged out. Welcome back!');
+      navigate('/dashboard');
+    } catch (err) {
+      toast.error('Could not log in', { description: getFriendlyAuthError(err) });
+    } finally {
+      setTakingOver(false);
+      setConflictDevice(null);
     }
   };
 
@@ -161,6 +193,45 @@ export default function Login() {
           </div>
         </Card>
       </div>
+
+      {/* Device conflict — self-service takeover */}
+      <AlertDialog open={!!conflictDevice} onOpenChange={(open) => !open && setConflictDevice(null)}>
+        <AlertDialogContent className="rounded-2xl border-none shadow-2xl max-w-sm">
+          <AlertDialogHeader>
+            <div className="inline-flex p-2.5 bg-orange-50 rounded-xl mb-1 mx-auto sm:mx-0">
+              <MonitorSmartphone className="w-5 h-5 text-orange-600" />
+            </div>
+            <AlertDialogTitle className="text-base font-bold text-zinc-900">
+              Already Logged In Elsewhere
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-zinc-500 text-sm">
+              Your account is currently active on{' '}
+              <strong>{conflictDevice?.ua ? conflictDevice.ua.slice(0, 70) : 'another device'}</strong>
+              {conflictDevice?.timestamp && (
+                <> since {new Date(conflictDevice.timestamp).toLocaleString('en-IN')}</>
+              )}
+              . This portal only allows one active session at a time. You can log that device out and
+              continue signing in here.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="rounded-lg text-xs h-8 px-3" disabled={takingOver}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleForceLogin}
+              disabled={takingOver}
+              className="bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-xs h-8 px-4"
+            >
+              {takingOver ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                'Log Out That Device & Sign In Here'
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

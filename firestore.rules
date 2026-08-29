@@ -35,5 +35,33 @@ service cloud.firestore {
       // Authenticated students can read courses (e.g. to show their course name)
       allow read: if request.auth != null;
     }
+
+    // ── resources collection (video lectures / notes / projects) ─────────────
+    match /resources/{resourceId} {
+      // Any signed-in user (student or admin) can view the resource library
+      allow read: if request.auth != null;
+
+      // Only admin can add / edit / remove resources
+      allow write, delete: if isAdmin();
+    }
+
+    // ── doubts collection (student query/support tickets) ────────────────────
+    match /doubts/{doubtId} {
+      // A student may create a doubt only under their own uid
+      allow create: if isOwn(request.resource.data.studentId);
+
+      // A student can read/update/delete their own doubt (e.g. confirm resolution,
+      // reopen, or delete it); admin can read/update/delete any doubt
+      allow read, update, delete: if isOwn(resource.data.studentId) || isAdmin();
+    }
+
+    // ── notifications collection (in-app alerts) ──────────────────────────────
+    match /notifications/{notificationId} {
+      // Owner or admin can read/mark-read/delete
+      allow read, update, delete: if isOwn(resource.data.uid) || isAdmin();
+
+      // Admin can notify anyone; a user may also write their own (e.g. self-service flows)
+      allow create: if isAdmin() || isOwn(request.resource.data.uid);
+    }
   }
 }
