@@ -1,27 +1,13 @@
-import nodemailer from 'nodemailer';
+import { sendMail, emailConfigured } from './_lib/mailer.js';
 
-// Vercel Serverless Function — the only "backend" this app has. Sends the two
-// doubt-system email notifications (admin gets pinged on a new doubt; the student
-// gets pinged on status changes). Kept intentionally simple: this is an internal
-// tool for a small bootcamp, not a public API, so the guardrails below (fixed
-// admin recipient, whitelisted `type`, length caps) are proportionate — not a
-// substitute for real auth, which would need a Firebase Admin service account
-// nobody has generated for this project.
+// Vercel Serverless Function — sends the two doubt-system email notifications
+// (admin gets pinged on a new doubt; the student gets pinged on status changes).
+// Kept intentionally simple: this is an internal tool for a small bootcamp, not
+// a public API, so the guardrails below (fixed admin recipient, whitelisted
+// `type`, length caps) are proportionate — not a substitute for real auth.
 
 const MAX_LEN = 4000;
 const clamp = (val) => String(val ?? '').slice(0, MAX_LEN);
-
-function getTransporter() {
-  return nodemailer.createTransport({
-    host: process.env.EMAIL_HOST,
-    port: Number(process.env.EMAIL_PORT) || 587,
-    secure: false, // STARTTLS on 587
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS
-    }
-  });
-}
 
 function buildNewDoubtEmail(body) {
   const topic = clamp(body.topic) || '(no topic given)';
@@ -65,7 +51,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ ok: false, error: 'Method not allowed' });
   }
 
-  if (!process.env.EMAIL_HOST || !process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+  if (!emailConfigured()) {
     console.error('notify-doubt: EMAIL_* environment variables are not configured.');
     return res.status(200).json({ ok: false, error: 'Email is not configured on the server.' });
   }
@@ -86,12 +72,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ ok: false, error: 'Unknown notification type.' });
     }
 
-    const transporter = getTransporter();
-    await transporter.sendMail({
-      from: `"StackSprint Bootcamp" <${process.env.EMAIL_USER}>`,
-      ...mail
-    });
-
+    await sendMail(mail);
     return res.status(200).json({ ok: true });
   } catch (err) {
     // Never throw a raw error to the client — the doubt itself is already saved

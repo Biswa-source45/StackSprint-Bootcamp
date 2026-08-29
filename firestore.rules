@@ -63,5 +63,14 @@ service cloud.firestore {
       // Admin can notify anyone; a user may also write their own (e.g. self-service flows)
       allow create: if isAdmin() || isOwn(request.resource.data.uid);
     }
+
+    // ── passwordResets collection (forgot-password OTPs) ──────────────────────
+    // Written and read exclusively by the /api/request-otp and /api/reset-password
+    // serverless functions via the Admin SDK, which bypasses these rules entirely —
+    // this just guarantees no client (student, admin, or otherwise) can ever read
+    // or forge an OTP hash directly through the normal Firestore client SDK.
+    match /passwordResets/{email} {
+      allow read, write: if false;
+    }
   }
 }
