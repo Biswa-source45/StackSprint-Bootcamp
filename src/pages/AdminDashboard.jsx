@@ -54,7 +54,6 @@ import {
   FolderKanban,
   MonitorPlay,
   FileText,
-  FolderCode,
   UploadCloud,
   Link2,
   MessageCircleQuestion,
@@ -95,12 +94,11 @@ const TABS = [
   { key: 'queries', label: 'Student Queries', Icon: MessageCircleQuestion }
 ];
 
-const emptyResourceForm = { kind: 'video', topic: '', title: '', description: '', category: '', driveShareLink: '', tagsText: '' };
+const emptyResourceForm = { kind: 'video', topic: '', title: '', description: '', driveShareLink: '' };
 
 const RESOURCE_KIND_TABS = [
   { key: 'video', label: 'Video Lectures', Icon: MonitorPlay },
-  { key: 'note', label: 'Notes & Docs', Icon: FileText },
-  { key: 'project', label: 'Projects & Code', Icon: FolderCode }
+  { key: 'note', label: 'Notes & Docs', Icon: FileText }
 ];
 
 const DOUBT_STATUS_FILTERS = [
@@ -359,7 +357,9 @@ export default function AdminDashboard() {
   };
 
   // ── Resource handlers ────────────────────────────────────────────────────
-  const resourcesOfKind = resources.filter((r) => r.kind === resourceKind);
+  const resourcesOfKind = resources
+    .filter((r) => r.kind === resourceKind)
+    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 
   const handleResourceFormChange = (e) => {
     const { name, value } = e.target;
@@ -391,24 +391,21 @@ export default function AdminDashboard() {
         topic: resourceForm.topic.trim(),
         title: resourceForm.title.trim(),
         description: resourceForm.description.trim(),
-        category: resourceForm.category.trim(),
         driveShareLink: resourceForm.driveShareLink.trim(),
         embedUrl,
         driveUrl,
         updatedAt: new Date().toISOString()
       };
-      if (resourceForm.kind === 'project') {
-        data.tags = resourceForm.tagsText
-          .split(',')
-          .map((t) => t.trim())
-          .filter(Boolean);
-      }
 
       if (editingResourceId) {
+        // Deliberately not touching `order` here — editing shouldn't reshuffle position.
         await updateDoc(doc(db, 'resources', editingResourceId), data);
         toast.success('Resource updated!');
       } else {
         data.createdAt = new Date().toISOString();
+        // New resources sort after everything else — Date.now() is comfortably larger
+        // than the small sequential indices the legacy import assigns.
+        data.order = Date.now();
         await addDoc(collection(db, 'resources'), data);
         toast.success('Resource added!');
       }
@@ -428,9 +425,7 @@ export default function AdminDashboard() {
       topic: r.topic || '',
       title: r.title || '',
       description: r.description || '',
-      category: r.category || '',
-      driveShareLink: r.driveShareLink || r.driveUrl || '',
-      tagsText: Array.isArray(r.tags) ? r.tags.join(', ') : ''
+      driveShareLink: r.driveShareLink || r.driveUrl || ''
     });
     setResourceKind(r.kind);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -455,8 +450,11 @@ export default function AdminDashboard() {
     try {
       const items = flattenLegacyResources();
       const now = new Date().toISOString();
-      for (const item of items) {
-        await addDoc(collection(db, 'resources'), { ...item, createdAt: now, updatedAt: now });
+      // `order` preserves the curriculum's intended sequence (GitHub -> CSS -> JS ->
+      // React -> Express -> MongoDB, lecture 1/2/3... within each) — every item in one
+      // batch getting the same `createdAt` means createdAt alone can't be sorted on.
+      for (let i = 0; i < items.length; i++) {
+        await addDoc(collection(db, 'resources'), { ...items[i], order: i, createdAt: now, updatedAt: now });
       }
       toast.success(`Imported ${items.length} existing resources into the library.`);
     } catch (err) {
@@ -1158,7 +1156,7 @@ export default function AdminDashboard() {
                 {resourceForm.kind !== 'note' && (
                   <div className="space-y-1.5">
                     <Label className="text-xs font-semibold text-zinc-600">
-                      {resourceForm.kind === 'project' ? 'Project Topic' : 'Topic (groups lectures together)'}
+                      Topic (groups lectures together)
                     </Label>
                     <Input
                       name="topic" required value={resourceForm.topic}
@@ -1175,18 +1173,6 @@ export default function AdminDashboard() {
                   </div>
                 )}
 
-                {resourceForm.kind === 'project' && (
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold text-zinc-600">Category</Label>
-                    <Input
-                      name="category" value={resourceForm.category}
-                      onChange={handleResourceFormChange}
-                      placeholder="Frontend Project"
-                      className="h-9 text-sm rounded-lg"
-                    />
-                  </div>
-                )}
-
                 <div className="space-y-1.5">
                   <Label className="text-xs font-semibold text-zinc-600">Description</Label>
                   <Textarea
@@ -1196,18 +1182,6 @@ export default function AdminDashboard() {
                     className="text-sm min-h-[70px]"
                   />
                 </div>
-
-                {resourceForm.kind === 'project' && (
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold text-zinc-600">Tags (comma separated)</Label>
-                    <Input
-                      name="tagsText" value={resourceForm.tagsText}
-                      onChange={handleResourceFormChange}
-                      placeholder="React.js, GitHub API, Tailwind CSS"
-                      className="h-9 text-sm rounded-lg"
-                    />
-                  </div>
-                )}
 
                 <div className="space-y-1.5">
                   <Label className="text-xs font-semibold text-zinc-600 flex items-center gap-1.5">

@@ -4,8 +4,7 @@ import { db } from '../lib/firebase';
 import { collection, onSnapshot } from 'firebase/firestore';
 import {
   CURRICULUM as LEGACY_CURRICULUM,
-  NOTES_DATA as LEGACY_NOTES,
-  PROJECTS_DATA as LEGACY_PROJECTS
+  NOTES_DATA as LEGACY_NOTES
 } from '../lib/legacyResourcesSeed';
 import {
   ChevronDown,
@@ -21,10 +20,7 @@ import {
   Code,
   Atom,
   Server,
-  FolderCode,
   ExternalLink,
-  Download,
-  Sparkles,
   Database,
   Layers,
   Terminal
@@ -54,17 +50,17 @@ function getTopicStyle(name) {
 
 // ─── Group flat Firestore video resources into the topic-sectioned shape ─────
 function groupVideosByTopic(items) {
-  const sorted = [...items].sort((a, b) => (a.createdAt || '').localeCompare(b.createdAt || ''));
-  const order = [];
+  const sorted = [...items].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+  const topicOrder = [];
   const map = new Map();
   for (const item of sorted) {
     if (!map.has(item.topic)) {
       map.set(item.topic, []);
-      order.push(item.topic);
+      topicOrder.push(item.topic);
     }
     map.get(item.topic).push(item);
   }
-  return order.map((topic) => ({
+  return topicOrder.map((topic) => ({
     id: topic,
     topic,
     ...getTopicStyle(topic),
@@ -189,23 +185,11 @@ function LectureCard({ lecture, index, topicColor }) {
           <VideoPlayer embedUrl={lecture.embedUrl} title={lecture.title} />
 
           {/* Player tip */}
-          <div className="flex items-center justify-between gap-2 pt-1 px-1">
-            <div className="flex items-center gap-1.5">
-              <CheckCircle2 className="w-3 h-3 text-emerald-500 flex-shrink-0" />
-              <span className="text-[10px] text-zinc-400">
-                Use the native player controls for seeks, volume, CC, quality &amp; fullscreen.
-              </span>
-            </div>
-            {lecture.driveUrl && (
-              <a
-                href={lecture.driveUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-[10px] text-emerald-600 hover:underline font-medium flex items-center gap-1"
-              >
-                Direct Download / View <Download className="w-3 h-3" />
-              </a>
-            )}
+          <div className="flex items-center gap-1.5 pt-1 px-1">
+            <CheckCircle2 className="w-3 h-3 text-emerald-500 flex-shrink-0" />
+            <span className="text-[10px] text-zinc-400">
+              Use the native player controls for seeks, volume, CC, quality &amp; fullscreen.
+            </span>
           </div>
         </div>
       )}
@@ -294,110 +278,6 @@ function NotesTab({ notes }) {
   );
 }
 
-// ─── Projects Tab ─────────────────────────────────────────────────────────────
-function ProjectsTab({ projects }) {
-  const [activePreview, setActivePreview] = useState(null);
-
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-2 px-4 py-3 bg-emerald-50 border border-emerald-100 rounded-xl">
-        <Sparkles className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-        <p className="text-xs text-emerald-800">
-          Explore complete project repositories &amp; recording walkthroughs. Click <strong>Open Drive Project</strong> to access source files directly.
-        </p>
-      </div>
-
-      {projects.length === 0 ? (
-        <div className="py-16 text-center text-zinc-400 text-sm">No projects published yet.</div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          {projects.map((project) => {
-            const style = project.icon ? project : { ...getTopicStyle(project.topic || project.category), ...project };
-            const Icon = style.icon || FolderCode;
-            const isPreviewing = activePreview === project.id;
-            const tags = Array.isArray(project.tags) ? project.tags : [];
-
-            return (
-              <div
-                key={project.id}
-                className="bg-white border border-zinc-200/80 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
-              >
-                <div>
-                  {/* Header */}
-                  <div className="flex items-center justify-between gap-3 mb-3">
-                    <div className="flex items-center gap-2.5">
-                      <div className={`p-2.5 bg-gradient-to-br ${style.color} rounded-xl shadow-sm`}>
-                        <Icon className="w-5 h-5 text-white" />
-                      </div>
-                      <div>
-                        <span className={`text-[10px] font-bold uppercase tracking-wider ${style.textColor}`}>
-                          {project.category}
-                        </span>
-                        <h3 className="text-sm font-extrabold text-zinc-900 leading-snug">
-                          {project.title}
-                        </h3>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Description */}
-                  <p className="text-xs text-zinc-500 leading-relaxed mb-4">
-                    {project.description}
-                  </p>
-
-                  {/* Tags */}
-                  {tags.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5 mb-4">
-                      {tags.map((tag) => (
-                        <span
-                          key={tag}
-                          className="text-[10px] font-semibold text-zinc-600 bg-zinc-100 px-2.5 py-0.5 rounded-md"
-                        >
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Expandable Player Preview */}
-                  {isPreviewing && (
-                    <div className="mb-4 rounded-xl overflow-hidden border border-zinc-200">
-                      <VideoPlayer embedUrl={project.embedUrl} title={project.title} />
-                    </div>
-                  )}
-                </div>
-
-                {/* Actions */}
-                <div className="flex items-center gap-2 pt-3 border-t border-zinc-100 mt-2">
-                  <a
-                    href={project.driveUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-colors shadow-sm"
-                  >
-                    <ExternalLink className="w-3.5 h-3.5" />
-                    Open Drive Project
-                  </a>
-
-                  {project.embedUrl && (
-                    <button
-                      onClick={() => setActivePreview(isPreviewing ? null : project.id)}
-                      className="inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 rounded-xl text-xs font-bold transition-colors"
-                    >
-                      <MonitorPlay className="w-3.5 h-3.5 text-zinc-500" />
-                      {isPreviewing ? 'Hide Preview' : 'Watch Session'}
-                    </button>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  );
-}
-
 // ─── Main Component ───────────────────────────────────────────────────────────
 export function Resources() {
   const [activeTab, setActiveTab] = useState('videos');
@@ -417,11 +297,12 @@ export function Resources() {
 
   const liveVideos = useMemo(() => liveResources.filter((r) => r.kind === 'video'), [liveResources]);
   const liveNotes = useMemo(() => liveResources.filter((r) => r.kind === 'note'), [liveResources]);
-  const liveProjects = useMemo(() => liveResources.filter((r) => r.kind === 'project'), [liveResources]);
 
   const videoTopics = liveVideos.length > 0 ? groupVideosByTopic(liveVideos) : LEGACY_CURRICULUM;
-  const notes = liveNotes.length > 0 ? liveNotes : LEGACY_NOTES;
-  const projects = liveProjects.length > 0 ? liveProjects : LEGACY_PROJECTS;
+  const notes =
+    liveNotes.length > 0
+      ? [...liveNotes].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+      : LEGACY_NOTES;
 
   return (
     <div className="min-h-screen bg-zinc-50/50 pt-20 pb-16">
@@ -446,7 +327,7 @@ export function Resources() {
             Learning Resources
           </h1>
           <p className="text-zinc-500 text-sm mt-2 max-w-xl">
-            Access all class recordings, project source code, and study materials. Organized by module and session.
+            Access all class recordings and study materials. Organized by module and session.
           </p>
         </div>
 
@@ -454,8 +335,7 @@ export function Resources() {
         <div className="flex bg-white border border-zinc-200 rounded-xl p-1 shadow-sm mb-6 w-fit flex-wrap gap-1">
           {[
             { key: 'videos', label: 'Video Lectures', Icon: MonitorPlay },
-            { key: 'notes', label: 'Notes & Docs', Icon: FileText },
-            { key: 'projects', label: 'Projects & Code', Icon: FolderCode }
+            { key: 'notes', label: 'Notes & Docs', Icon: FileText }
           ].map(({ key, label, Icon }) => (
             <button
               key={key}
@@ -490,8 +370,6 @@ export function Resources() {
         )}
 
         {activeTab === 'notes' && <NotesTab notes={notes} />}
-
-        {activeTab === 'projects' && <ProjectsTab projects={projects} />}
       </div>
     </div>
   );

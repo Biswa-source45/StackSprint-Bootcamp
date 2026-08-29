@@ -303,54 +303,6 @@ export const NOTES_DATA = [
   }
 ];
 
-export const PROJECTS_DATA = [
-  {
-    id: 'react-github-finder-1',
-    title: 'React Project — GitHub User Finder (Part 1)',
-    topic: 'React.js',
-    category: 'Frontend Project',
-    description: 'Complete hands-on React project for building a GitHub User Finder application (Part 1). Features live GitHub API integration, component state, profile card rendering, dynamic repositories list, and modern responsive styling.',
-    tags: ['React.js', 'GitHub API', 'Component State', 'Tailwind CSS'],
-    embedUrl: 'https://drive.google.com/file/d/1-XH2fc98tnr2GAEdHNeK9nqWV7xL16om/preview',
-    driveUrl: 'https://drive.google.com/file/d/1-XH2fc98tnr2GAEdHNeK9nqWV7xL16om/view?usp=drive_link',
-    icon: Atom,
-    color: 'from-cyan-600 to-blue-600',
-    bgLight: 'bg-cyan-50',
-    textColor: 'text-cyan-700',
-    borderColor: 'border-cyan-200'
-  },
-  {
-    id: 'react-github-finder-2',
-    title: 'React Project — GitHub User Finder (Part 2)',
-    topic: 'React.js',
-    category: 'Frontend Project',
-    description: 'Hands-on React project implementation (Part 2). Covers dynamic repositories fetching, state optimization, search filtering, error handling, and enhanced UI polish.',
-    tags: ['React.js', 'GitHub API', 'Async Fetch', 'UI Polish'],
-    embedUrl: 'https://drive.google.com/file/d/1W9-MNCvR7-GAIVgzbk01Q78LybbG2f4x/preview',
-    driveUrl: 'https://drive.google.com/file/d/1W9-MNCvR7-GAIVgzbk01Q78LybbG2f4x/view?usp=drive_link',
-    icon: Atom,
-    color: 'from-cyan-600 to-blue-600',
-    bgLight: 'bg-cyan-50',
-    textColor: 'text-cyan-700',
-    borderColor: 'border-cyan-200'
-  },
-  {
-    id: 'express-backend-api',
-    title: 'Express.js & Node.js Backend Masterclass',
-    topic: 'Express.js',
-    category: 'Backend Architecture',
-    description: 'Comprehensive Express.js backend project architecture covering Node.js server setup, RESTful API endpoint configuration, modular route controllers, middleware layers, and backend project structure.',
-    tags: ['Node.js', 'Express.js', 'REST API', 'Backend Architecture'],
-    embedUrl: 'https://drive.google.com/file/d/1NlrWpzJEsijXslUMRJ1dfKknkpTBEUXG/preview',
-    driveUrl: 'https://drive.google.com/file/d/1NlrWpzJEsijXslUMRJ1dfKknkpTBEUXG/view?usp=drive_link',
-    icon: Server,
-    color: 'from-emerald-600 to-teal-600',
-    bgLight: 'bg-emerald-50',
-    textColor: 'text-emerald-700',
-    borderColor: 'border-emerald-200'
-  }
-];
-
 // ─── Flatten into the shape the `resources` Firestore collection expects ─────
 // Used once by the admin "Import existing curriculum" action.
 export function flattenLegacyResources() {
@@ -381,20 +333,6 @@ export function flattenLegacyResources() {
       driveShareLink: note.url,
       embedUrl: '',
       driveUrl: note.url
-    });
-  }
-
-  for (const project of PROJECTS_DATA) {
-    items.push({
-      kind: 'project',
-      topic: project.topic,
-      title: project.title,
-      description: project.description,
-      category: project.category,
-      tags: project.tags,
-      driveShareLink: project.driveUrl,
-      embedUrl: project.embedUrl,
-      driveUrl: project.driveUrl
     });
   }
 
