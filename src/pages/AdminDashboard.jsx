@@ -22,6 +22,7 @@ import { Textarea } from '../components/ui/textarea';
 import { toast } from 'sonner';
 import { parseDriveLink } from '../lib/driveLink';
 import { flattenLegacyResources } from '../lib/legacyResourcesSeed';
+import { sendDoubtEmail } from '../lib/notify';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -481,14 +482,11 @@ export default function AdminDashboard() {
     } catch (err) {
       console.warn('notifyStudent: could not write in-app notification:', err.message);
     }
-    try {
-      await fetch('/api/notify-doubt', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: 'status-update', to: email, subject, message })
+    const { sent, error } = await sendDoubtEmail({ type: 'status-update', to: email, subject, message });
+    if (!sent) {
+      toast.warning('Student notified in-app, but the email alert may not have gone through.', {
+        description: error
       });
-    } catch (err) {
-      console.warn('notifyStudent: email dispatch failed:', err.message);
     }
   };
 

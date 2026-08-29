@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { db } from '../lib/firebase';
 import { collection, query, where, onSnapshot, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
+import { sendDoubtEmail } from '../lib/notify';
 import { Card } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
@@ -139,23 +140,24 @@ export default function StudentDashboard() {
         updatedAt: new Date().toISOString()
       });
 
-      // Best-effort admin email alert — the doubt is already saved either way.
-      fetch('/api/notify-doubt', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          type: 'new-doubt',
-          topic: doubtForm.topic,
-          description: doubtForm.description,
-          preferredTime: doubtForm.preferredTime,
-          contactNumber: doubtForm.contactNumber,
-          studentName: userData.name,
-          studentEmail: userData.email
-        })
-      }).catch((err) => console.warn('Doubt email alert failed:', err.message));
-
       toast.success('Doubt registered! An instructor will reach out soon.');
       setDoubtDialogOpen(false);
+
+      // Best-effort admin email alert — the doubt is already saved either way, so
+      // this runs after the dialog closes and only warns (doesn't block) on failure.
+      sendDoubtEmail({
+        type: 'new-doubt',
+        topic: doubtForm.topic,
+        description: doubtForm.description,
+        preferredTime: doubtForm.preferredTime,
+        contactNumber: doubtForm.contactNumber,
+        studentName: userData.name,
+        studentEmail: userData.email
+      }).then(({ sent }) => {
+        if (!sent) {
+          toast.warning('Query saved, but the email alert to your instructor may not have gone through.');
+        }
+      });
       setDoubtForm({ ...emptyDoubtForm, contactNumber: userData.mobile || '' });
     } catch (err) {
       toast.error('Could not register doubt: ' + err.message);
