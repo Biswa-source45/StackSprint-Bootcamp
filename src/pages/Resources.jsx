@@ -1,5 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import { db } from '../lib/firebase';
+import { collection, onSnapshot } from 'firebase/firestore';
+import {
+  CURRICULUM as LEGACY_CURRICULUM,
+  NOTES_DATA as LEGACY_NOTES
+} from '../lib/legacyResourcesSeed';
 import {
   ChevronDown,
   ChevronUp,
@@ -12,182 +18,64 @@ import {
   CheckCircle2,
   Palette,
   Code,
-  Atom
+  Atom,
+  Server,
+  ExternalLink,
+  Database,
+  Layers,
+  Terminal
 } from 'lucide-react';
 
-
-// ─── Video Data ────────────────────────────────────────────────────────────────
-const CURRICULUM = [
-  {
-    id: 'github',
-    topic: 'GitHub',
-    icon: GitBranch,
-    color: 'from-violet-600 to-indigo-600',
-    bgLight: 'bg-violet-50',
-    textColor: 'text-violet-700',
-    borderColor: 'border-violet-200',
-    lectures: [
-      {
-        id: 'gh-lec-1',
-        title: 'GitHub — Lecture 1',
-        description: 'Introduction to Git & GitHub: repositories, commits, branching basics.',
-        duration: 'Session Recording',
-        embedUrl: 'https://drive.google.com/file/d/1FaK1SrvwJ63KRBJP8-SlthcZk2pPRcFS/preview'
-      },
-      {
-        id: 'gh-lec-2',
-        title: 'GitHub — Lecture 2',
-        description: 'GitHub: collaboration workflows.',
-        duration: 'Session Recording',
-        embedUrl: 'https://drive.google.com/file/d/1POPfBVwsb82jStx3y439nKv0DLe6SiwS/preview'
-      }
-    ]
-  },
-  {
-    id: 'css',
-    topic: 'CSS',
-    icon: Palette,
-    color: 'from-blue-600 to-cyan-600',
-    bgLight: 'bg-blue-50',
-    textColor: 'text-blue-700',
-    borderColor: 'border-blue-200',
-    lectures: [
-      {
-        id: 'css-lec-1',
-        title: 'CSS — Lecture 1',
-        description: 'Introduction to CSS: syntax, selectors, colors, fonts',
-        duration: 'Session Recording',
-        embedUrl: 'https://drive.google.com/file/d/1GsimyMwTfRO2-y7WTGmJngt5RepkHIe9/preview'
-      },
-      {
-        id: 'css-lec-2',
-        title: 'CSS — Lecture 2',
-        description: 'CSS Box Model, text properties, and styling fundamentals.',
-        duration: 'Session Recording',
-        embedUrl: 'https://drive.google.com/file/d/1dLSfJCBNOlP6GOMJPObFafLIm1-Oeog1/preview'
-      },
-      {
-        id: 'css-lec-3',
-        title: 'CSS — Lecture 3',
-        description: 'CSS-3 lecture: Deep dive into flexbox architecture with examples of a sample design page.',
-        duration: 'Session Recording',
-        embedUrl: 'https://drive.google.com/file/d/1XJ7wYAmcFa8b0avmC6yqqW68K6eQS8dZ/preview'
-      },
-      {
-        id: 'css-lec-4',
-        title: 'CSS — Lecture 4',
-        description: 'CSS-4 lecture: Position and overflow property and scale and transform property.',
-        duration: 'Session Recording',
-        embedUrl: 'https://drive.google.com/file/d/1MGpCg5pqac2LSHUuSZDADH_FMKbxQ7oN/preview'
-      },
-      {
-        id: 'css-lec-5',
-        title: 'CSS — Lecture 5',
-        description: 'CSS-5 lecture: UI/UX design principles and AI tools like Google stitch.',
-        duration: 'Session Recording',
-        embedUrl: 'https://drive.google.com/file/d/1bscWR_cYMLaZO1LMIHYgZnrw_RNJuUpM/preview'
-      },
-      {
-        id: 'css-lec-6',
-        title: 'CSS — Lecture 6',
-        description: 'CSS-6 lecture: Transition property and functions (delay, timing functions, duration).',
-        duration: 'Session Recording',
-        embedUrl: 'https://drive.google.com/file/d/150R8pfsRyu4bIE_dkBIL5mHf5AiDs76r/preview'
-      },
-      {
-        id: 'css-lec-7',
-        title: 'CSS — Lecture 7',
-        description: 'CSS-7 lecture: CSS Modules & Animation — scoped CSS modules in React, keyframes, transitions, and hover effects.',
-        duration: 'Session Recording',
-        embedUrl: 'https://drive.google.com/file/d/1_0MSDLIKqJ7kXMoWIHZoh7lDj7t4dbbx/preview'
-      },
-      {
-        id: 'css-lec-8',
-        title: 'CSS — Lecture 8',
-        description: 'CSS-8 lecture: Responsive design, media queries, mobile-first approach, and fluid layouts.',
-        duration: 'Session Recording',
-        embedUrl: 'https://drive.google.com/file/d/1TD37eu9kd4LKMQVu5O6Akhbfj28knsYp/preview'
-      }
-    ]
-  },
-  {
-    id: 'javascript',
-    topic: 'JavaScript',
-    icon: Code,
-    color: 'from-amber-600 to-orange-600',
-    bgLight: 'bg-amber-50',
-    textColor: 'text-amber-700',
-    borderColor: 'border-amber-200',
-    lectures: [
-      {
-        id: 'js-lec-1',
-        title: 'JavaScript — Lecture 1',
-        description: 'Introduction to JavaScript: variables, scope (var, let, const), data types, and core fundamentals.',
-        duration: 'Session Recording',
-        embedUrl: 'https://drive.google.com/file/d/1ebs6eNP9KojznDfA86xZNaQY3IFCRlY2/preview'
-      },
-      {
-        id: 'js-lec-2',
-        title: 'JavaScript — Lecture 2',
-        description: 'JavaScript DOM: Document Object Model, selecting/manipulating elements, event listeners, and dynamic web page interactivity.',
-        duration: 'Session Recording',
-        embedUrl: 'https://drive.google.com/file/d/1UUrVeS92cRoEC2XtsuR3TKG8JnEEH2_l/preview'
-      },
-      {
-        id: 'js-lec-3',
-        title: 'JavaScript — Lecture 3',
-        description: 'JavaScript Fetch API & Promises: Understanding asynchronous programming, promises, resolve/reject, and APIs.',
-        duration: 'Session Recording',
-        embedUrl: 'https://drive.google.com/file/d/16T4kifyPfEocgf7EsHW1XLIlXO0EZfsZ/preview'
-      },
-      {
-        id: 'js-rev-1',
-        title: 'JavaScript Revision — Part 1',
-        description: 'Comprehensive review of JavaScript fundamentals, variables, functions, and DOM manipulation basics.',
-        duration: 'Session Recording',
-        embedUrl: 'https://drive.google.com/file/d/1EFH6Bu0U8V3P8HmcHLL3WPfM2X_6xbEK/preview'
-      },
-      {
-        id: 'js-rev-2',
-        title: 'JavaScript Revision — Part 2',
-        description: 'Comprehensive revision of advanced JavaScript concepts, callback functions, asynchronous flows, and API integration.',
-        duration: 'Session Recording',
-        embedUrl: 'https://drive.google.com/file/d/11iQV8sS2IBhlJDwUCSeJ20D-ahLLRleX/preview'
-      }
-    ]
-  },
-  {
-    id: 'react',
-    topic: 'React',
-    icon: Atom,
-    color: 'from-cyan-600 to-blue-600',
-    bgLight: 'bg-cyan-50',
-    textColor: 'text-cyan-700',
-    borderColor: 'border-cyan-200',
-    lectures: [
-      {
-        id: 'react-lec-1',
-        title: 'React — Lecture 1',
-        description: 'Introduction to React: Library overview, virtual DOM, JSX, components, and environment setup.',
-        duration: 'Session Recording',
-        embedUrl: 'https://drive.google.com/file/d/1Ona7MWOERuZdRfZbVPA3ume2aw8BaDJ5/preview'
-      },
-      {
-        id: 'react-lec-2',
-        title: 'React — Lecture 2',
-        description: 'React components, props, state management, event handling, and conditional rendering.',
-        duration: 'Session Recording',
-        embedUrl: 'https://drive.google.com/file/d/1-5vK0W4YGzPmhXtVkl1KYbHmuDLyIQXQ/preview'
-      }
-    ]
-  }
+// ─── Topic visual style palette ───────────────────────────────────────────────
+// Admin-created topics are free text, so a visual style is assigned deterministically
+// by topic name rather than hand-picked — keeps the "add a resource" admin form to
+// just title / description / Drive link, no color-picking required.
+const TOPIC_STYLES = [
+  { icon: GitBranch, color: 'from-violet-600 to-indigo-600', bgLight: 'bg-violet-50', textColor: 'text-violet-700', borderColor: 'border-violet-200' },
+  { icon: Palette, color: 'from-blue-600 to-cyan-600', bgLight: 'bg-blue-50', textColor: 'text-blue-700', borderColor: 'border-blue-200' },
+  { icon: Code, color: 'from-amber-600 to-orange-600', bgLight: 'bg-amber-50', textColor: 'text-amber-700', borderColor: 'border-amber-200' },
+  { icon: Atom, color: 'from-cyan-600 to-blue-600', bgLight: 'bg-cyan-50', textColor: 'text-cyan-700', borderColor: 'border-cyan-200' },
+  { icon: Server, color: 'from-emerald-600 to-teal-600', bgLight: 'bg-emerald-50', textColor: 'text-emerald-700', borderColor: 'border-emerald-200' },
+  { icon: Database, color: 'from-emerald-600 to-green-700', bgLight: 'bg-emerald-50', textColor: 'text-emerald-800', borderColor: 'border-emerald-200' },
+  { icon: Layers, color: 'from-pink-600 to-rose-600', bgLight: 'bg-pink-50', textColor: 'text-pink-700', borderColor: 'border-pink-200' },
+  { icon: Terminal, color: 'from-slate-700 to-zinc-800', bgLight: 'bg-slate-50', textColor: 'text-slate-700', borderColor: 'border-slate-200' }
 ];
 
+function getTopicStyle(name) {
+  let hash = 0;
+  const str = name || '';
+  for (let i = 0; i < str.length; i++) hash = (hash * 31 + str.charCodeAt(i)) >>> 0;
+  return TOPIC_STYLES[hash % TOPIC_STYLES.length];
+}
+
+// ─── Group flat Firestore video resources into the topic-sectioned shape ─────
+function groupVideosByTopic(items) {
+  const sorted = [...items].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+  const topicOrder = [];
+  const map = new Map();
+  for (const item of sorted) {
+    if (!map.has(item.topic)) {
+      map.set(item.topic, []);
+      topicOrder.push(item.topic);
+    }
+    map.get(item.topic).push(item);
+  }
+  return topicOrder.map((topic) => ({
+    id: topic,
+    topic,
+    ...getTopicStyle(topic),
+    lectures: map.get(topic).map((l) => ({
+      id: l.id,
+      title: l.title,
+      description: l.description,
+      duration: l.category || 'Session Recording',
+      embedUrl: l.embedUrl,
+      driveUrl: l.driveUrl
+    }))
+  }));
+}
+
 // ─── Video Player ──────────────────────────────────────────────────────────────
-// Pure Google Drive embed — no custom controls or overlays on top of the player.
-// Only additions: loading spinner while iframe initialises, and a centred Play
-// button that disappears the moment the user clicks it (revealing the full
-// native GDrive chrome with seek, volume, CC, HD, fullscreen, etc.)
 function VideoPlayer({ embedUrl, title }) {
   const [iframeLoaded, setIframeLoaded] = useState(false);
   const [hasStarted, setHasStarted] = useState(false);
@@ -197,7 +85,7 @@ function VideoPlayer({ embedUrl, title }) {
       className="relative w-full bg-zinc-950 rounded-xl overflow-hidden shadow-2xl shadow-zinc-900/30"
       style={{ aspectRatio: '16/9' }}
     >
-      {/* Loading spinner – shown until iframe fires onLoad */}
+      {/* Loading spinner */}
       {!iframeLoaded && (
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 z-30 bg-zinc-950">
           <Loader2 className="w-8 h-8 text-emerald-500 animate-spin" />
@@ -207,7 +95,7 @@ function VideoPlayer({ embedUrl, title }) {
         </div>
       )}
 
-      {/* Centred Play button – visible after load, gone after first click */}
+      {/* Centred Play button */}
       {iframeLoaded && !hasStarted && (
         <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/25 backdrop-blur-[1.5px]">
           <button
@@ -215,13 +103,12 @@ function VideoPlayer({ embedUrl, title }) {
             className="group flex items-center justify-center w-20 h-20 rounded-full bg-white/95 shadow-2xl shadow-black/50 hover:scale-110 active:scale-95 transition-all duration-200 focus:outline-none focus-visible:ring-4 focus-visible:ring-white/50"
             aria-label={`Play ${title}`}
           >
-            {/* CSS triangle – cleaner than an SVG for this size */}
             <div className="w-0 h-0 ml-2 border-t-[13px] border-t-transparent border-l-[22px] border-l-zinc-900 border-b-[13px] border-b-transparent group-hover:border-l-emerald-600 transition-colors duration-200" />
           </button>
         </div>
       )}
 
-      {/* Google Drive iframe – the native player does everything else */}
+      {/* Google Drive iframe */}
       <iframe
         src={embedUrl}
         title={title}
@@ -279,7 +166,20 @@ function LectureCard({ lecture, index, topicColor }) {
       {open && (
         <div className="border-t border-zinc-100 bg-zinc-950/5 px-4 pb-4 pt-3 space-y-3">
           {/* Description */}
-          <p className="text-xs text-zinc-500 leading-relaxed px-1">{lecture.description}</p>
+          <div className="flex items-center justify-between gap-2 flex-wrap px-1">
+            <p className="text-xs text-zinc-500 leading-relaxed flex-1">{lecture.description}</p>
+            {lecture.driveUrl && (
+              <a
+                href={lecture.driveUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-semibold rounded-lg transition-colors shadow-sm"
+              >
+                <ExternalLink className="w-3.5 h-3.5" />
+                Open Drive Link
+              </a>
+            )}
+          </div>
 
           {/* Player */}
           <VideoPlayer embedUrl={lecture.embedUrl} title={lecture.title} />
@@ -328,34 +228,8 @@ function TopicSection({ topic }) {
   );
 }
 
-// ─── Notes Data ───────────────────────────────────────────────────────────────
-const NOTES_DATA = [
-  {
-    id: 'git-notes',
-    title: 'Git & GitHub Notes',
-    description: 'Comprehensive guide covering version control basics, repository management, and collaboration workflows.',
-    url: 'https://drive.google.com/file/d/17HlIglnw0RgRcsk2dsTNqjhKxaViOvqI/view?usp=sharing',
-    icon: GitBranch,
-    color: 'from-violet-600 to-indigo-600',
-    bgLight: 'bg-violet-50',
-    textColor: 'text-violet-700',
-    borderColor: 'border-violet-200',
-  },
-  {
-    id: 'html-notes',
-    title: 'HTML Notes',
-    description: 'Detailed cheat sheet and reference for HTML5 tags, document structure, and semantic elements.',
-    url: 'https://drive.google.com/file/d/1GaXTjo48OpYVGq6ZeJshgHTd0eNRouNN/view?usp=sharing',
-    icon: FileText,
-    color: 'from-orange-600 to-red-600',
-    bgLight: 'bg-orange-50',
-    textColor: 'text-orange-700',
-    borderColor: 'border-orange-200',
-  }
-];
-
 // ─── Notes Tab ────────────────────────────────────────────────────────────────
-function NotesTab() {
+function NotesTab({ notes }) {
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2 px-4 py-3 bg-emerald-50 border border-emerald-100 rounded-xl mb-4">
@@ -365,35 +239,41 @@ function NotesTab() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {NOTES_DATA.map((note) => {
-          const Icon = note.icon;
-          return (
-            <a
-              key={note.id}
-              href={note.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-start gap-4 p-5 bg-white border border-zinc-200/80 rounded-xl hover:shadow-md hover:border-zinc-300 transition-all group"
-            >
-              <div className={`flex-shrink-0 p-2.5 bg-gradient-to-br ${note.color} rounded-xl shadow-sm group-hover:scale-105 transition-transform`}>
-                <Icon className="w-5 h-5 text-white" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="text-sm font-bold text-zinc-900 group-hover:text-emerald-600 transition-colors truncate">
-                  {note.title}
-                </h3>
-                <p className="text-xs text-zinc-500 mt-1 leading-relaxed line-clamp-2">
-                  {note.description}
-                </p>
-                <span className={`inline-block mt-3 text-[10px] font-bold ${note.textColor} ${note.bgLight} border ${note.borderColor} px-2.5 py-1 rounded-full`}>
-                  View PDF
-                </span>
-              </div>
-            </a>
-          );
-        })}
-      </div>
+      {notes.length === 0 ? (
+        <div className="py-16 text-center text-zinc-400 text-sm">No notes published yet.</div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {notes.map((note) => {
+            const style = note.icon ? note : { ...getTopicStyle(note.topic || note.title), ...note };
+            const Icon = style.icon || FileText;
+            const url = note.url || note.driveUrl;
+            return (
+              <a
+                key={note.id}
+                href={url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-start gap-4 p-5 bg-white border border-zinc-200/80 rounded-xl hover:shadow-md hover:border-zinc-300 transition-all group"
+              >
+                <div className={`flex-shrink-0 p-2.5 bg-gradient-to-br ${style.color} rounded-xl shadow-sm group-hover:scale-105 transition-transform`}>
+                  <Icon className="w-5 h-5 text-white" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-sm font-bold text-zinc-900 group-hover:text-emerald-600 transition-colors truncate">
+                    {note.title}
+                  </h3>
+                  <p className="text-xs text-zinc-500 mt-1 leading-relaxed line-clamp-2">
+                    {note.description}
+                  </p>
+                  <span className={`inline-block mt-3 text-[10px] font-bold ${style.textColor} ${style.bgLight} border ${style.borderColor} px-2.5 py-1 rounded-full`}>
+                    View PDF
+                  </span>
+                </div>
+              </a>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
@@ -401,6 +281,28 @@ function NotesTab() {
 // ─── Main Component ───────────────────────────────────────────────────────────
 export function Resources() {
   const [activeTab, setActiveTab] = useState('videos');
+  const [liveResources, setLiveResources] = useState([]);
+
+  // Live, admin-managed resources. Falls back to the legacy hardcoded curriculum
+  // (imported above) until the admin's one-time "Import existing curriculum" runs
+  // or new resources are added — so this page never goes blank during the transition.
+  useEffect(() => {
+    const unsub = onSnapshot(
+      collection(db, 'resources'),
+      (snap) => setLiveResources(snap.docs.map((d) => ({ id: d.id, ...d.data() }))),
+      (err) => console.warn('Resources: could not load live resources, showing defaults:', err.message)
+    );
+    return unsub;
+  }, []);
+
+  const liveVideos = useMemo(() => liveResources.filter((r) => r.kind === 'video'), [liveResources]);
+  const liveNotes = useMemo(() => liveResources.filter((r) => r.kind === 'note'), [liveResources]);
+
+  const videoTopics = liveVideos.length > 0 ? groupVideosByTopic(liveVideos) : LEGACY_CURRICULUM;
+  const notes =
+    liveNotes.length > 0
+      ? [...liveNotes].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+      : LEGACY_NOTES;
 
   return (
     <div className="min-h-screen bg-zinc-50/50 pt-20 pb-16">
@@ -425,12 +327,12 @@ export function Resources() {
             Learning Resources
           </h1>
           <p className="text-zinc-500 text-sm mt-2 max-w-xl">
-            Access all class recordings and study materials. Videos are organized by topic and session.
+            Access all class recordings and study materials. Organized by module and session.
           </p>
         </div>
 
         {/* Tab switcher */}
-        <div className="flex bg-white border border-zinc-200 rounded-xl p-1 shadow-sm mb-6 w-fit">
+        <div className="flex bg-white border border-zinc-200 rounded-xl p-1 shadow-sm mb-6 w-fit flex-wrap gap-1">
           {[
             { key: 'videos', label: 'Video Lectures', Icon: MonitorPlay },
             { key: 'notes', label: 'Notes & Docs', Icon: FileText }
@@ -453,7 +355,7 @@ export function Resources() {
         {/* Tab content */}
         {activeTab === 'videos' && (
           <div className="space-y-6">
-            {CURRICULUM.map((topic) => (
+            {videoTopics.map((topic) => (
               <TopicSection key={topic.id} topic={topic} />
             ))}
 
@@ -461,13 +363,13 @@ export function Resources() {
             <div className="mt-4 flex items-center gap-2 px-4 py-3 bg-amber-50 border border-amber-100 rounded-xl">
               <span className="text-[10px] font-bold text-amber-600 uppercase tracking-widest">More topics</span>
               <p className="text-xs text-amber-700">
-                More module recordings (HTML, CSS, JS, React, Node.js…) will appear here as classes are completed.
+                More module recordings (HTML, CSS, JS, React, Express.js, Gen-AI…) will appear here as classes are completed.
               </p>
             </div>
           </div>
         )}
 
-        {activeTab === 'notes' && <NotesTab />}
+        {activeTab === 'notes' && <NotesTab notes={notes} />}
       </div>
     </div>
   );

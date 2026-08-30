@@ -24,6 +24,16 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
   // Ref to track if loading has settled — prevents premature signOut during initial hydration
   const isAuthReady = useRef(false);
+  // True while login()/forceLogin() is writing its own isLoggedIn/lastDeviceId update —
+  // the onSnapshot listener below must not treat a stale pre-write snapshot as a reason
+  // to sign the user back out (this was the "flicker / bounced back to login" bug).
+  const loginInFlightRef = useRef(false);
+  // State twin of the ref above, exposed to routing (ProtectedRoute). signInWithEmailAndPassword
+  // resolving makes `currentUser` truthy immediately — before login() has finished checking for a
+  // device conflict and possibly signing back out — which was letting ProtectedRoute's `inverse`
+  // guard on /login redirect to /dashboard mid-check, then bounce back once the conflict was found.
+  // Routing must treat "still validating" the same as "not logged in yet" until this clears.
+  const [authBusy, setAuthBusy] = useState(false);
 
   const getDeviceInfo = () => ({
     ua: navigator.userAgent,
@@ -32,54 +42,94 @@ export function AuthProvider({ children }) {
     timestamp: new Date().toISOString()
   });
 
+  const getCurrentDeviceId = () =>
+    localStorage.getItem('deviceId') ||
+    Math.random().toString(36).substring(7) + Date.now();
+
   const login = async (email, password) => {
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    const user = userCredential.user;
-
-    // Attempt to read the user document — admin accounts may not have a Firestore
-    // document (or rules may be scoped to students only). Treat any read failure
-    // as "admin — skip device enforcement" rather than surfacing an error.
-    let userDocData = null;
+    loginInFlightRef.current = true;
+    setAuthBusy(true);
     try {
-      const userDoc = await getDoc(doc(db, 'users', user.uid));
-      if (userDoc.exists()) {
-        userDocData = userDoc.data();
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      // Attempt to read the user document — admin accounts may not have a Firestore
+      // document (or rules may be scoped to students only). Treat any read failure
+      // as "admin — skip device enforcement" rather than surfacing an error.
+      let userDocData = null;
+      try {
+        const userDoc = await getDoc(doc(db, 'users', user.uid));
+        if (userDoc.exists()) {
+          userDocData = userDoc.data();
+        }
+      } catch (err) {
+        // Firestore permission denied for this uid → treat as admin, skip enforcement
+        console.warn('AuthContext: getDoc failed (likely admin without a users doc):', err.message);
       }
-    } catch (err) {
-      // Firestore permission denied for this uid → treat as admin, skip enforcement
-      console.warn('AuthContext: getDoc failed (likely admin without a users doc):', err.message);
-    }
 
-    if (!userDocData || userDocData.role === 'admin') {
-      // Admin or doc-less user: skip single-device enforcement
+      if (!userDocData || userDocData.role === 'admin') {
+        // Admin or doc-less user: skip single-device enforcement
+        return user;
+      }
+
+      // ── Student single-device enforcement ────────────────────────────────
+      const currentDeviceId = getCurrentDeviceId();
+
+      if (userDocData.isLoggedIn && userDocData.lastDeviceId && userDocData.lastDeviceId !== currentDeviceId) {
+        await signOut(auth);
+        const err = new Error(
+          `You're already logged in on another device (${userDocData.deviceInfo?.ua?.slice(0, 60) || 'unknown device'}).`
+        );
+        err.code = 'DEVICE_CONFLICT';
+        err.deviceInfo = userDocData.deviceInfo || null;
+        throw err;
+      }
+
+      localStorage.setItem('deviceId', currentDeviceId);
+      try {
+        await updateDoc(doc(db, 'users', user.uid), {
+          isLoggedIn: true,
+          lastDeviceId: currentDeviceId,
+          deviceInfo: getDeviceInfo()
+        });
+      } catch (err) {
+        console.warn('AuthContext: updateDoc failed during login:', err.message);
+      }
+
       return user;
+    } finally {
+      loginInFlightRef.current = false;
+      setAuthBusy(false);
     }
+  };
 
-    // ── Student single-device enforcement ──────────────────────────────────
-    const currentDeviceId =
-      localStorage.getItem('deviceId') ||
-      Math.random().toString(36).substring(7) + Date.now();
-
-    if (userDocData.isLoggedIn && userDocData.lastDeviceId && userDocData.lastDeviceId !== currentDeviceId) {
-      await signOut(auth);
-      const deviceName = userDocData.deviceInfo?.ua?.slice(0, 60) || 'another device';
-      throw new Error(
-        `Already logged in from [${deviceName}]. Logout from that device first, or ask admin to reset.`
-      );
-    }
-
-    localStorage.setItem('deviceId', currentDeviceId);
+  // Self-service device takeover: called after the user confirms "log out that
+  // other device and sign me in here" on the DEVICE_CONFLICT dialog. Re-authenticates
+  // and unconditionally claims the session for this device.
+  const forceLogin = async (email, password) => {
+    loginInFlightRef.current = true;
+    setAuthBusy(true);
     try {
-      await updateDoc(doc(db, 'users', user.uid), {
-        isLoggedIn: true,
-        lastDeviceId: currentDeviceId,
-        deviceInfo: getDeviceInfo()
-      });
-    } catch (err) {
-      console.warn('AuthContext: updateDoc failed during login:', err.message);
-    }
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+      const currentDeviceId = getCurrentDeviceId();
 
-    return user;
+      localStorage.setItem('deviceId', currentDeviceId);
+      try {
+        await updateDoc(doc(db, 'users', user.uid), {
+          isLoggedIn: true,
+          lastDeviceId: currentDeviceId,
+          deviceInfo: getDeviceInfo()
+        });
+      } catch (err) {
+        console.warn('AuthContext: updateDoc failed during forceLogin:', err.message);
+      }
+
+      return user;
+    } finally {
+      loginInFlightRef.current = false;
+      setAuthBusy(false);
+    }
   };
 
   const logout = async () => {
@@ -121,9 +171,12 @@ export function AuthProvider({ children }) {
           const data = docSnap.data();
           setUserData(data);
 
-          // Only enforce single-device policy AFTER auth has fully settled
-          // and only for non-admin users
-          if (isAuthReady.current && data.role !== 'admin') {
+          // Only enforce single-device policy AFTER auth has fully settled,
+          // only for non-admin users, and never while our own login()/forceLogin()
+          // write is still in flight — an earlier stale snapshot (e.g. isLoggedIn:false
+          // left over from the previous logout) can otherwise arrive after
+          // isAuthReady flips true and sign the user right back out.
+          if (isAuthReady.current && !loginInFlightRef.current && data.role !== 'admin') {
             const currentDeviceId = localStorage.getItem('deviceId');
             if (!data.isLoggedIn || (data.lastDeviceId && data.lastDeviceId !== currentDeviceId)) {
               signOut(auth);
@@ -151,7 +204,7 @@ export function AuthProvider({ children }) {
     return () => unsubDoc();
   }, [currentUser]);
 
-  const value = { currentUser, userData, login, logout, loading };
+  const value = { currentUser, userData, login, forceLogin, logout, loading, authBusy };
 
   return (
     <AuthContext.Provider value={value}>
