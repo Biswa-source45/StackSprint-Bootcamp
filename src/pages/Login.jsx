@@ -32,8 +32,6 @@ import {
   ArrowLeft
 } from 'lucide-react';
 import { toast } from 'sonner';
-import AetheraNavbar from '../components/layout/AetheraNavbar';
-import { Footer } from '../components/layout/Footer';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -138,48 +136,21 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-white text-black font-inter flex flex-col justify-between relative overflow-hidden">
-      {/* Header Navigation */}
-      <AetheraNavbar />
+    <div className="min-h-screen pt-16 bg-zinc-50 flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Decorative Blurs */}
+      <div className="absolute top-[-8%] right-[-8%] w-[350px] h-[350px] bg-emerald-100/60 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-[-8%] left-[-8%] w-[350px] h-[350px] bg-orange-50/60 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="w-full max-w-[460px] mx-auto px-4 py-12 relative z-10 flex-grow flex flex-col justify-center bg-white">
+      <div className="w-full max-w-[400px] relative z-10">
         {/* Back to home */}
         <Link
           to="/"
-          className="inline-flex items-center gap-1.5 text-xs font-medium text-black/60 hover:text-black transition-colors mb-6 group self-start"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-zinc-500 hover:text-emerald-600 transition-colors mb-6 group"
         >
           <Home className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" />
           Back to Landing Page
         </Link>
 
-<<<<<<< HEAD
-        <Card className="p-8 md:p-10  rounded-3xl bg-white">
-          {/* Header */}
-          <div className="text-center space-y-2 mb-8">
-            <div className="inline-flex p-3 bg-black/5 rounded-2xl mb-2 text-black border border-black/10">
-              <ShieldCheck className="w-6 h-6 text-black" />
-            </div>
-            <h1 className="text-3xl font-normal font-instrument text-black tracking-tight">Access Portal</h1>
-            <p className="text-black/60 text-xs font-medium">Secure login for Students &amp; Staff</p>
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Email */}
-            <div className="space-y-1.5">
-              <Label className="text-xs font-medium text-black/70">Email Address</Label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-black/40">
-                  <Mail className="w-4 h-4" />
-                </div>
-                <Input
-                  type="email"
-                  required
-                  className="pl-10 h-11 text-sm rounded-xl border-black/15 focus:border-black focus:ring-black/10 text-black font-medium"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="yours@example.com"
-                />
-=======
         <Card className="p-7 border border-zinc-200/80 shadow-2xl shadow-emerald-900/8 rounded-2xl bg-white/90 backdrop-blur-xl">
           {authView === 'login' && (
             <>
@@ -190,30 +161,8 @@ export default function Login() {
                 </div>
                 <h1 className="text-xl font-extrabold text-zinc-900 tracking-tight">Access Portal</h1>
                 <p className="text-zinc-400 text-xs font-medium">Secure login for Students &amp; Staff</p>
->>>>>>> b4459f70674bff8c080ba4705a09a10107526309
               </div>
 
-<<<<<<< HEAD
-            {/* Password */}
-            <div className="space-y-1.5">
-              <Label className="text-xs font-medium text-black/70">Password</Label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-black/40">
-                  <Lock className="w-4 h-4" />
-                </div>
-                <Input
-                  type={showPassword ? 'text' : 'password'}
-                  required
-                  className="pl-10 pr-10 h-11 text-sm rounded-xl border-black/15 focus:border-black focus:ring-black/10 text-black font-medium"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-black/40 hover:text-black transition-colors"
-=======
               <form onSubmit={handleSubmit} className="space-y-4">
                 {/* Email */}
                 <div className="space-y-1.5">
@@ -447,64 +396,9 @@ export default function Login() {
                   onClick={handleRequestOtp}
                   disabled={resetLoading}
                   className="w-full text-center text-xs font-semibold text-emerald-600 hover:text-emerald-700"
->>>>>>> b4459f70674bff8c080ba4705a09a10107526309
                 >
                   Resend code
                 </button>
-<<<<<<< HEAD
-              </div>
-            </div>
-
-            {/* Remember me / Forgot */}
-            <div className="flex items-center justify-between pt-1">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  className="w-3.5 h-3.5 rounded border-black/20 text-black focus:ring-black"
-                />
-                <span className="text-xs text-black/60 font-medium">Remember me</span>
-              </label>
-              <button type="button" className="text-xs font-semibold text-black hover:underline">
-                Forgot code?
-              </button>
-            </div>
-
-            {/* Submit */}
-            <Button
-              type="submit"
-              disabled={loading}
-              className="w-full h-12 bg-black hover:bg-zinc-900 text-white rounded-full font-medium text-base shadow-md group mt-2 hover:scale-[1.02] transition-all duration-300"
-            >
-              {loading ? (
-                <Loader2 className="w-4 h-4 animate-spin mx-auto text-white" />
-              ) : (
-                <span className="flex items-center justify-center gap-2">
-                  Sign Into Portal
-                  <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
-                </span>
-              )}
-            </Button>
-          </form>
-
-          {/* Footer trust badges */}
-          <div className="mt-8 pt-6 border-t border-black/10 grid grid-cols-2 gap-3">
-            <div className="p-3 bg-black/[0.02] border border-black/5 rounded-2xl space-y-0.5">
-              <div className="flex items-center gap-1.5 text-[10px] font-bold text-black">
-                <CheckCircle2 className="w-3.5 h-3.5 text-black" /> Encrypted
-              </div>
-              <p className="text-[10px] text-black/60 leading-relaxed font-medium">End-to-end data security.</p>
-            </div>
-            <div className="p-3 bg-black/[0.02] border border-black/5 rounded-2xl space-y-0.5">
-              <div className="flex items-center gap-1.5 text-[10px] font-bold text-black">
-                <ShieldCheck className="w-3.5 h-3.5 text-black" /> Monitored
-              </div>
-              <p className="text-[10px] text-black/60 leading-relaxed font-medium">Session activity logged.</p>
-            </div>
-          </div>
-        </Card>
-      </div>
-
-=======
               </form>
             </>
           )}
@@ -549,7 +443,6 @@ export default function Login() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
->>>>>>> b4459f70674bff8c080ba4705a09a10107526309
     </div>
   );
 }
